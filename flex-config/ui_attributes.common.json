@@ -89,7 +89,7 @@
         "enable_call_queue": true
       },
       "scrollable_activities": {
-        "enabled": true
+        "enabled": false
       },
       "supervisor_barge_coach": {
         "enabled": true,
@@ -275,7 +275,7 @@
         "highlight_handle_time": true,
         "handle_time_warning_threshold": 180,
         "handle_time_exceeded_threshold": 300,
-        "display_task_queue_name": true,
+        "display_task_queue_name": false,
         "columns": {
           "calls": true,
           "other_tasks": true,
@@ -304,7 +304,8 @@
           "task_summary_tile": false,
           "team_activity_tile": false,
           "status_idle_color": "limegreen",
-          "status_busy_color": "royalblue"
+          "status_busy_color": "royalblue",
+          "status_idle_name": "Available"
         },
         "channels": {
           "Voice": {
