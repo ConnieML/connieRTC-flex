@@ -1,6 +1,6 @@
 {
   "custom_data": {
-    "serverless_functions_domain": "<YOUR_SERVERLESS_DOMAIN>",
+    "serverless_functions_domain": "custom-flex-extensions-serverless-8158-dev.twil.io",
     "common": {
       "log_level": "info",
       "audit_log_ttl": 1209600,
@@ -426,6 +426,13 @@
         "enabled": false,
         "exclude_attributes": [],
         "exclude_queues": []
+      },
+      "custom_profile": {
+        "enabled": false
+      },
+      "custom_profile_panel": {
+        "enabled": true,
+        "profile_proxy_url": "https://custom-flex-extensions-serverless-8158-dev.twil.io/profile-proxy"
       }
     }
   }
