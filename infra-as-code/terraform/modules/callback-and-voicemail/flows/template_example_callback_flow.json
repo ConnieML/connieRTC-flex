@@ -9,7 +9,7 @@
           "event": "incomingMessage"
         },
         {
-          "next": "SendCallToAgent",
+          "next": "Generate_Profile_URL",
           "event": "incomingCall"
         },
         {
@@ -30,6 +30,34 @@
       }
     },
     {
+      "name": "Generate_Profile_URL",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "SendCallToAgent",
+          "event": "success"
+        },
+        {
+          "next": "SendCallToAgent_Fallback",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 240,
+          "y": 100
+        },
+        "url": "https://connie-profiles-v01-6987.twil.io/features/generate-profile-url",
+        "method": "GET",
+        "parameters": [
+          {
+            "value": "{{trigger.call.From}}",
+            "key": "phoneNumber"
+          }
+        ]
+      }
+    },
+    {
       "name": "SendCallToAgent",
       "type": "send-to-flex",
       "transitions": [
@@ -44,14 +72,40 @@
         }
       ],
       "properties": {
-        "waitUrl": "https://${SERVERLESS_DOMAIN}/features/callback-and-voicemail/studio/wait-experience",
+        "waitUrl": "https://custom-flex-extensions-serverless-8158-dev.twil.io/features/callback-and-voicemail/studio/wait-experience",
         "offset": {
-          "x": 40,
-          "y": 170
+          "x": 110,
+          "y": 240
         },
-        "workflow": "${WORKFLOW_SID}",
-        "channel": "${VOICE_CHANNEL_SID}",
-        "attributes": "{ \"type\": \"inbound\", \"name\": \"{{trigger.call.From}}\", \"conversations\": {\"hang_up_by\": \"Customer\"} }",
+        "workflow": "WWd01822d5be62af0fa0bef6c4ad7d0dfa",
+        "channel": "TCb732fdada36d93d7d7bf684e75a07b8f",
+        "attributes": "{ \"type\": \"inbound\", \"name\": \"{{trigger.call.From}}\", \"call_sid\": \"{{trigger.call.CallSid}}\", \"crm_url\": \"{{widgets.Generate_Profile_URL.parsed.crm_url}}\", \"conversations\": {\"hang_up_by\": \"Customer\"} }",
+        "waitUrlMethod": "POST"
+      }
+    },
+    {
+      "name": "SendCallToAgent_Fallback",
+      "type": "send-to-flex",
+      "transitions": [
+        {
+          "event": "callComplete"
+        },
+        {
+          "event": "failedToEnqueue"
+        },
+        {
+          "event": "callFailure"
+        }
+      ],
+      "properties": {
+        "waitUrl": "https://custom-flex-extensions-serverless-8158-dev.twil.io/features/callback-and-voicemail/studio/wait-experience",
+        "offset": {
+          "x": 370,
+          "y": 240
+        },
+        "workflow": "WWd01822d5be62af0fa0bef6c4ad7d0dfa",
+        "channel": "TCb732fdada36d93d7d7bf684e75a07b8f",
+        "attributes": "{ \"type\": \"inbound\", \"name\": \"{{trigger.call.From}}\", \"call_sid\": \"{{trigger.call.CallSid}}\", \"crm_url\": \"https://connie-profiles-v01-6987.twil.io/profile-view?phone={{trigger.call.From | url_encode}}\", \"conversations\": {\"hang_up_by\": \"Customer\"} }",
         "waitUrlMethod": "POST"
       }
     }

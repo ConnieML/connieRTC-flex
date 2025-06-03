@@ -77,11 +77,11 @@
       },
       "enhanced_crm_container": {
         "enabled": true,
-        "url": "{{serverless.url}}/features/enhanced-crm-container/index.html?line1={{task.from}}&line2={{task.direction}}",
+        "url": "{{task.attributes.crm_url}}",
         "should_display_url_when_no_tasks": true,
-        "display_url_when_no_tasks": "{{serverless.url}}/features/enhanced-crm-container/index.html",
+        "display_url_when_no_tasks": "https://connie-profiles-v01-6987.twil.io/profile-view?empty=true",
         "enable_url_tab": true,
-        "url_tab_title": "Web Page"
+        "url_tab_title": "Customer Profile"
       },
       "internal_call": {
         "enabled": true,

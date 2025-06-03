@@ -41,9 +41,13 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ task }) => {
         setError(null);
         
         const phoneNumber = task.attributes.from || '';
+        console.log('ProfilePanel: Original phone number from task:', phoneNumber);
+        
         const normalizedPhoneNumber = phoneNumber.replace(/[^+\d]/g, '');
+        console.log('ProfilePanel: Normalized phone number:', normalizedPhoneNumber);
         
         if (!normalizedPhoneNumber) {
+          console.log('ProfilePanel: No phone number found in task attributes');
           setError('No phone number found');
           setLoading(false);
           return;
@@ -51,6 +55,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ task }) => {
         
         // Get profile proxy URL from configuration
         const profileProxyUrl = getProfileProxyUrl();
+        console.log('ProfilePanel: Using profile proxy URL:', profileProxyUrl);
         
         // Add timeout to fetch to prevent hanging
         const controller = new AbortController();
@@ -58,8 +63,11 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ task }) => {
         
         try {
           // Fetch profile data with timeout
+          const requestUrl = `${profileProxyUrl}?From=${encodeURIComponent(normalizedPhoneNumber)}`;
+          console.log('ProfilePanel: Fetching profile from:', requestUrl);
+          
           const response = await fetch(
-            `${profileProxyUrl}?From=${encodeURIComponent(normalizedPhoneNumber)}`,
+            requestUrl,
             { signal: controller.signal },
           );
           clearTimeout(timeoutId);

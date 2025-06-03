@@ -1,0 +1,24 @@
+{
+  "name": "Get_Profile",
+  "type": "run-function",
+  "transitions": [
+    {
+      "next": "set_variables_1",
+      "event": "success"
+    },
+    {
+      "next": "set_variables_2",
+      "event": "fail"
+    }
+  ],
+  "properties": {
+    "url": "https://connie-profiles-v01-6987.twil.io/profile-proxy",
+    "method": "GET",
+    "parameters": [
+      {
+        "value": "{{trigger.call.From}}",
+        "key": "phoneNumber"
+      }
+    ]
+  }
+}
