@@ -1,5 +1,5 @@
 // Your account sid goes here
-var accountSid = "AC595d7affd2fb2cdb37a528cb25e5d63f";
+var accountSid = "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
 var appConfig = {
   pluginService: {
