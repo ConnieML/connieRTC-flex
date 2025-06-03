@@ -187,3 +187,6 @@ terraform.rc
 # Ignore local env(s), allowing only the example env
 .env.*
 !.env.example
+
+# Ignore configuration files with secrets
+plugin-flex-ts-template-v2/public/appConfig.example.js
