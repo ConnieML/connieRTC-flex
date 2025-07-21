@@ -49,22 +49,22 @@ Choose your current phone provider below to view step-by-step forwarding instruc
   
   <div style={{textAlign: 'center', width: '200px'}}>
     <div style={{height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px'}}>
-      <Link to="/end-users/cbo-admins/voice/call-forwarding/cox-communications">
+      <Link to="/end-users/cbo-admins/channels/voice/call-forwarding/cox-communications">
         <img src="/img/providers/cox-logo.png" alt="Cox Business" style={{maxWidth: '180px', maxHeight: '60px', objectFit: 'contain'}} />
       </Link>
     </div>
-    <Link to="/end-users/cbo-admins/voice/call-forwarding/cox-communications" style={{textDecoration: 'none', fontWeight: 'bold'}}>
+    <Link to="/end-users/cbo-admins/channels/voice/call-forwarding/cox-communications" style={{textDecoration: 'none', fontWeight: 'bold'}}>
       Setup Guide Available
     </Link>
   </div>
 
   <div style={{textAlign: 'center', width: '200px'}}>
     <div style={{height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px'}}>
-      <Link to="/end-users/cbo-admins/voice/call-forwarding/xfinity-business">
+      <Link to="/end-users/cbo-admins/channels/voice/call-forwarding/xfinity-business">
         <img src="/img/providers/xfinity-logo.png" alt="Xfinity Business" style={{maxWidth: '180px', maxHeight: '60px', objectFit: 'contain'}} />
       </Link>
     </div>
-    <Link to="/end-users/cbo-admins/voice/call-forwarding/xfinity-business" style={{textDecoration: 'none', fontWeight: 'bold'}}>
+    <Link to="/end-users/cbo-admins/channels/voice/call-forwarding/xfinity-business" style={{textDecoration: 'none', fontWeight: 'bold'}}>
       Setup Guide Available
     </Link>
   </div>

@@ -8,7 +8,7 @@ import Link from '@docusaurus/Link';
 
 # Choose Your Email Provider
 
-If you've selected **Option C** (Callback + Voicemail + Email Notifications) from the [Implementation Guide](./voicemail-implementation-guide), you need to choose an email provider for sending voicemail notifications.
+If you've selected **Option C** (Callback + Voicemail + Email Notifications) from the [Implementation Guide](voicemail-implementation-guide), you need to choose an email provider for sending voicemail notifications.
 
 ## Supported Email Providers
 

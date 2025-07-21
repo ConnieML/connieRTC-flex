@@ -91,7 +91,7 @@ Enable the feature in your Flex configuration:
 ### Mailgun Configuration
 
 For detailed Mailgun setup instructions, see:
-- [Mailgun Setup Guide](../developers/building/feature-management/channels/voice/voicemail/mailgun-setup.md)
+- [Mailgun Setup Guide](../developers/building/feature-management/channels/voice/voicemail/email-providers/mailgun-setup)
 
 Key steps include:
 
@@ -265,9 +265,9 @@ For high-volume deployments:
 ## Related Documentation
 
 - [Callback and Voicemail (Standard)](./callback-and-voicemail.md)
-- [Mailgun Email Setup](../developers/building/feature-management/channels/voice/voicemail/mailgun-setup.md)
-- [SendGrid Email Setup](../developers/building/feature-management/channels/voice/voicemail/sendgrid-setup.md)
-- [Voice Channel Overview](../end-users/cbo-admins/voice/)
+- [Mailgun Email Setup](../developers/building/feature-management/channels/voice/voicemail/email-providers/mailgun-setup)
+- [SendGrid Email Setup](../developers/building/feature-management/channels/voice/voicemail/email-providers/sendgrid-setup)
+- [Voice Channel Overview](../end-users/cbo-admins/channels/voice/)
 
 ## Support and Maintenance
 

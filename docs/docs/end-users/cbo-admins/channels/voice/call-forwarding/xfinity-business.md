@@ -123,8 +123,8 @@ To turn off call forwarding:
 
 After setting up call forwarding:
 - Configure voicemail in Connie (coming soon)
-- [Set up call routing rules](../../getting-started.md)
-- [Train your team on the new system](../../../staff-agents/overview.md)
+- [Set up call routing rules](../../../getting-started)
+- Train your team on the new system (training guide coming soon)
 
 ## Need Help?
 

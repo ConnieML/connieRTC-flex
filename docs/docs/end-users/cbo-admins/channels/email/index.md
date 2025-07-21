@@ -18,7 +18,7 @@ Select your email service provider to set up automated email notifications for v
   margin: '40px 0'
 }}>
   <Link
-    to="/developers/building/feature-management/channels/voice/voicemail/mailgun-setup"
+    to="/developers/building/feature-management/channels/voice/voicemail/email-providers/mailgun-setup"
     style={{
       textDecoration: 'none',
       color: 'inherit',
@@ -58,7 +58,7 @@ Select your email service provider to set up automated email notifications for v
   </Link>
 
   <Link
-    to="/developers/building/feature-management/channels/voice/voicemail/sendgrid-setup"
+    to="/developers/building/feature-management/channels/voice/voicemail/email-providers/sendgrid-setup"
     style={{
       textDecoration: 'none',
       color: 'inherit',
