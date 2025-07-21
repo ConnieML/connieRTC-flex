@@ -12,13 +12,13 @@ Connie provides comprehensive voice communication solutions designed specificall
 
 ### Call Forwarding
 Forward your existing business phone number to Connie without changing your main number.
-- [Call Forwarding Overview](./call-forwarding/)
-- [Cox Communications Setup](./call-forwarding/cox-communications)
-- [Xfinity Business Setup](./call-forwarding/xfinity-business)
+- [Call Forwarding Overview](call-forwarding/)
+- [Cox Communications Setup](call-forwarding/cox-communications)
+- [Xfinity Business Setup](call-forwarding/xfinity-business)
 
 ### Voicemail Options
 Choose the right voicemail solution for your organization's needs.
-- [Voicemail Options Guide](./voicemail/voicemail-options-guide)
+- [Voicemail Options Guide](voicemail/voicemail-options-guide)
 
 ## Getting Started
 
