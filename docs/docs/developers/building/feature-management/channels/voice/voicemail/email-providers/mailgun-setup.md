@@ -119,11 +119,30 @@ Value: 10 mxa.mailgun.org
 DNS changes take 1-24 hours to propagate. You can check verification status in Mailgun dashboard under **Domains** → **Domain Verification**.
 :::
 
-### Get Your API Key
+### Get Your Sending API Key
 
-1. In Mailgun dashboard → **Settings** → **API Keys**
-2. Copy the **Private API key** (starts with various prefixes, not just "key-")
-3. Save this for Step 4
+:::warning Critical: Use Domain-Specific Sending Key
+**Do NOT use the Private API key from Settings → API Keys.** You need a domain-specific sending key for the email functionality to work properly.
+:::
+
+After your domain is created and DNS records are configured:
+
+1. **Navigate to your domain:** Mailgun dashboard → **Sending** → **Domains** 
+2. **Click on your domain** (e.g., `voicemail.clientdomain.com`)
+3. **Go to Domain Settings:** Click **Domain settings** button
+4. **Access Sending Keys:** Click the **Sending keys** tab
+
+<!-- ![Mailgun Domain Settings - Sending Keys Tab](/img/mailgun/mailgun-sending-keys-tab.png) -->
+
+5. **Create a sending key:** Click **Add sending key**
+6. **Copy both values:**
+   - **Key ID** (e.g., `45de04af-85e71f21`) 
+   - **API Send Key** (long string starting with various prefixes)
+
+<!-- ![Mailgun Sending Key Details](/img/mailgun/mailgun-sending-key-details.png) -->
+
+7. **Use the API Send Key** for your `MAILGUN_API_KEY` environment variable
+8. Save both the Key ID and API Send Key in a secure location
 
 ### Test Mailgun Setup
 
@@ -150,8 +169,12 @@ In your Connie deployment, add these environment variables to Twilio Functions:
 
 ADMIN_EMAIL=admin@clientdomain.com
 MAILGUN_DOMAIN=voicemail.clientdomain.com  
-MAILGUN_API_KEY=your-mailgun-private-api-key
+MAILGUN_API_KEY=your-mailgun-sending-api-key
 ```
+
+:::warning Use the Sending API Key
+The `MAILGUN_API_KEY` must be the **API Send Key** from the domain's Sending keys tab, NOT the Private API key from Settings → API Keys.
+:::
 
 **How to add environment variables:**
 1. Twilio Console → **Functions & Assets** → **Services**
