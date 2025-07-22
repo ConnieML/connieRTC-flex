@@ -132,14 +132,14 @@ After your domain is created and DNS records are configured:
 3. **Go to Domain Settings:** Click **Domain settings** button
 4. **Access Sending Keys:** Click the **Sending keys** tab
 
-<!-- ![Mailgun Domain Settings - Sending Keys Tab](/img/mailgun/mailgun-sending-keys-tab.png) -->
+![Mailgun Domain Settings - Sending Keys Tab](/img/mailgun/mailgun-sending-keys-tab.png)
 
 5. **Create a sending key:** Click **Add sending key**
 6. **Copy both values:**
    - **Key ID** (e.g., `45de04af-85e71f21`) 
    - **API Send Key** (long string starting with various prefixes)
 
-<!-- ![Mailgun Sending Key Details](/img/mailgun/mailgun-sending-key-details.png) -->
+![Mailgun Sending Key Details](/img/mailgun/mailgun-sending-key-details.png)
 
 7. **Use the API Send Key** for your `MAILGUN_API_KEY` environment variable
 8. Save both the Key ID and API Send Key in a secure location

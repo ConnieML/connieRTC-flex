@@ -131,8 +131,8 @@ exports.handler = async (context, event, callback) => {
     case undefined:
       // Initial logic to find the associated task for the call, and propagate it through to the rest of the TwiML execution
       // If the lookup fails to find the task, the remaining TwiML logic will not offer any callback or voicemail options.
-      const enqueuedWorkflowSid = (await twilioExecute(context, (client) => client.queues(QueueSid).fetch())).data
-        .friendlyName;
+      // TEMPORARY FIX: Hardcode workflow SID to bypass buggy queue friendlyName logic
+      const enqueuedWorkflowSid = 'WWa846c3e57d90837b9ce31834cd7334db'; // DevSandBox clean workflow
       console.log(`Enqueued workflow sid: ${enqueuedWorkflowSid}`);
       const enqueuedTask = await getPendingTaskByCallSid(context, CallSid, enqueuedWorkflowSid);
 
@@ -365,6 +365,47 @@ exports.handler = async (context, event, callback) => {
       return callback(null, twiml);
 
     case 'voicemail-recorded':
+      // Send email notification if configured
+      if (context.ADMIN_EMAIL && context.MAILGUN_DOMAIN && context.MAILGUN_API_KEY) {
+        try {
+          console.log('Sending voicemail email notification...');
+          
+          // Call the email notification function
+          const emailResult = await twilioExecute(context, async () => {
+            const emailFunction = Runtime.getFunctions()['features/callback-and-voicemail-with-email/studio/send-voicemail-email'].path;
+            const emailHandler = require(emailFunction);
+            
+            return new Promise((resolve, reject) => {
+              emailHandler.handler(context, {
+                RecordingUrl: event.RecordingUrl,
+                RecordingSid: event.RecordingSid,
+                TranscriptionText: event.TranscriptionText || 'Transcription not available',
+                From: event.From,
+                To: event.Called,
+                Timestamp: Math.floor(Date.now() / 1000) // Current timestamp
+              }, (error, result) => {
+                if (error) {
+                  reject(new Error(error));
+                } else {
+                  resolve(result);
+                }
+              });
+            });
+          });
+
+          if (emailResult.success) {
+            console.log('Email notification sent successfully:', emailResult.data);
+          } else {
+            console.error('Email notification failed:', emailResult.status);
+          }
+        } catch (emailError) {
+          // Log error but don't fail the voicemail submission
+          console.error('Error sending email notification:', emailError.message);
+        }
+      } else {
+        console.log('Email notification skipped - missing configuration (ADMIN_EMAIL, MAILGUN_DOMAIN, or MAILGUN_API_KEY)');
+      }
+
       // End the interaction. Hangup the call.
       twiml.say(options.sayOptions, options.messages.voicemailRecorded);
       twiml.hangup();

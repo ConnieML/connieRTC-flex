@@ -1,0 +1,13 @@
+{
+  "name": "connie-voicemail-email",
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "twilio serverless:deploy --override-existing-project"
+  },
+  "dependencies": {
+    "axios": "^1.8.4",
+    "form-data": "^4.0.1",
+    "twilio": "^4.23.0"
+  },
+  "description": "Dedicated email service for voicemail notifications"
+}
