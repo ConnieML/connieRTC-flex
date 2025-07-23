@@ -1,0 +1,50 @@
+{
+  "description": "NSS Voicemail Only Flow - Direct to Function",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall",
+          "next": "redirect_to_voicemail"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "redirect_to_voicemail",
+      "type": "twiml-redirect",
+      "transitions": [],
+      "properties": {
+        "method": "POST",
+        "url": "https://custom-flex-extensions-serverless-1343-dev.twil.io/features/voicemail-only-with-email/voicemail-greeting",
+        "offset": {
+          "x": 250,
+          "y": 100
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

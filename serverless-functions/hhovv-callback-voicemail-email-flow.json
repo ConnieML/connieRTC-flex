@@ -1,0 +1,61 @@
+{
+  "description": "HHOVV Callback and Voicemail with Email Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_to_flex_1",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -70,
+          "y": -60
+        }
+      }
+    },
+    {
+      "name": "send_to_flex_1",
+      "type": "send-to-flex",
+      "transitions": [
+        {
+          "event": "callComplete"
+        },
+        {
+          "event": "failedToEnqueue"
+        },
+        {
+          "event": "callFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 170,
+          "y": 100
+        },
+        "workflow": "WW3657f8c5b384cdad9c6d37cbaedd1013",
+        "channel": "voice",
+        "attributes": "{\"call_sid\": \"{{trigger.call.CallSid}}\", \"callBackData\": {\"attempts\": 0}}"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

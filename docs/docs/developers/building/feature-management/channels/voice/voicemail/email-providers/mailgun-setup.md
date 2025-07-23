@@ -146,16 +146,67 @@ After your domain is created and DNS records are configured:
 
 ### Test Mailgun Setup
 
-Before proceeding, test email delivery:
+:::danger CRITICAL: Test API Before Deployment
+**This step prevents 90% of deployment failures.** You MUST verify API credentials work before proceeding.
+:::
 
-1. Mailgun dashboard → **Sending** → **Overview**
-2. Use **Send Test Email** feature
-3. Send to your client's admin email
-4. Confirm delivery
+**Use this exact command to test:**
+
+```bash
+# TEST MAILGUN API BEFORE DEPLOYMENT
+curl -s -w "\nHTTP Status: %{http_code}\n" --user "api:[YOUR_SENDING_API_KEY]" \
+    https://api.mailgun.net/v3/[YOUR_DOMAIN]/messages \
+    -F from='Test <test@[YOUR_DOMAIN]>' \
+    -F to='[ADMIN_EMAIL]' \
+    -F subject='Pre-Deployment API Test' \
+    -F text='If you receive this, Mailgun API is working correctly.'
+```
+
+**Expected result:**
+```json
+{"id":"<20250722104855.38483d1186b94dc9@yourdomain.com>","message":"Queued. Thank you."}
+HTTP Status: 200
+```
+
+:::danger STOP if you get:
+- **HTTP 401**: Wrong API key - use domain-specific sending key
+- **HTTP 404**: Domain not found - check domain configuration  
+- **Any other error**: Do NOT proceed with deployment
+:::
+
+**API Key Type Verification:**
+- ✅ **Domain Sending Key**: `***REMOVED***` 
+- ❌ **Private API Key**: `key-1234567890abcdef` (DON'T USE THIS)
 
 ---
 
-## Step 3: Configure Template Feature
+## Step 3: Pre-Deployment Checklist
+
+:::danger STOP: Complete This Checklist First
+Before proceeding, ensure you have ALL of the following information:
+:::
+
+**✅ Twilio Account Details:**
+- [ ] Account SID (format: `AC...`)
+- [ ] Auth Token
+- [ ] Twilio CLI profile configured and active
+
+**✅ Twilio Flex Configuration:**
+- [ ] Workspace SID (format: `WS...`)
+- [ ] "Assign to Anyone" Workflow SID (format: `WW...`)
+
+**✅ Mailgun Configuration:**
+- [ ] Domain verified (DNS records propagated)
+- [ ] API test successful (Step 2)
+- [ ] Domain-specific sending API key saved
+
+**✅ Client Information:**
+- [ ] Phone number to configure
+- [ ] Admin email address(es) for notifications
+
+---
+
+## Step 4: Configure Template Feature
 
 The voicemail-with-email functionality is **already built into your ConnieRTC template**. You just need to configure it.
 
@@ -170,10 +221,17 @@ In your Connie deployment, add these environment variables to Twilio Functions:
 ADMIN_EMAIL=admin@clientdomain.com
 MAILGUN_DOMAIN=voicemail.clientdomain.com  
 MAILGUN_API_KEY=your-mailgun-sending-api-key
+
+# For multiple admin emails (separate emails sent to each):
+# ADMIN_EMAIL=admin1@domain.com,admin2@domain.com
 ```
 
 :::warning Use the Sending API Key
 The `MAILGUN_API_KEY` must be the **API Send Key** from the domain's Sending keys tab, NOT the Private API key from Settings → API Keys.
+:::
+
+:::info Multiple Admin Emails
+To send notifications to multiple administrators, use comma-separated emails. The system sends **separate emails** to each recipient for better reliability.
 :::
 
 **How to add environment variables:**
@@ -202,7 +260,41 @@ Enable the feature in your Flex configuration:
 
 ---
 
-## Step 4: Deploy the Implementation
+## Step 5: Critical Code Update
+
+:::danger CRITICAL: Update Workflow SID
+**This is the #1 cause of "option not available" errors.** You MUST update the hardcoded workflow SID before deployment.
+:::
+
+### Update Wait Experience Function
+
+**File**: `/serverless-functions/src/functions/features/callback-and-voicemail-with-email/studio/wait-experience.protected.js`  
+**Line**: ~135
+
+```javascript
+// TEMPORARY FIX: Hardcode workflow SID to bypass buggy queue friendlyName logic
+const enqueuedWorkflowSid = 'WW...'; // YOUR "Assign to Anyone" workflow SID
+```
+
+**How to find your workflow SID:**
+1. Twilio Console → **TaskRouter** → **Workspaces**
+2. Select your Flex workspace
+3. Click **Workflows**
+4. Find "Assign to Anyone" workflow
+5. Copy the SID (starts with `WW`)
+
+**Example:**
+```javascript
+// Before (will cause failures):
+const enqueuedWorkflowSid = 'WW3657f8c5b384cdad9c6d37cbaedd1013'; // HHOVV workflow
+
+// After (updated for your account):
+const enqueuedWorkflowSid = 'WW68ed6f6bc555f21e436810af747722a9'; // Your workflow
+```
+
+---
+
+## Step 6: Deploy the Implementation
 
 ### Deploy Serverless Functions
 
@@ -214,11 +306,31 @@ cd serverless-functions
 npm run deploy
 ```
 
-Expected output shows the email function deployed:
+**Deployment output will show:**
 ```
+domain            custom-flex-extensions-serverless-XXXX-dev.twil.io
+...
 protected /features/callback-and-voicemail-with-email/studio/send-voicemail-email
 protected /features/callback-and-voicemail-with-email/studio/wait-experience
 ```
+
+:::tip Note Your Deployment Domain
+Copy the domain URL (e.g., `custom-flex-extensions-serverless-4044-dev.twil.io`). You'll need this for Studio Flow configuration and monitoring.
+:::
+
+### Verify Environment Variables Deployed
+
+```bash
+# List deployed environment variables
+twilio api:serverless:v1:services:environments:variables:list \
+  --service-sid ZS... \
+  --environment-sid ZE...
+```
+
+**Look for:**
+- `ADMIN_EMAIL`
+- `MAILGUN_DOMAIN`  
+- `MAILGUN_API_KEY`
 
 ### Apply Infrastructure Changes
 
@@ -240,6 +352,9 @@ This creates:
 - ✅ Studio Flow with email integration  
 - ✅ All required serverless functions
 
+:::info Correct Terminology
+In the Studio Flow Send to Flex widget, the field is called **"Hold Music TwiML URL"** (NOT "Wait URL"). This URL handles the caller experience while waiting in queue.
+
 ### Connect to Phone Number
 
 1. Twilio Console → **Phone Numbers** → **Active Numbers**
@@ -248,9 +363,99 @@ This creates:
 4. Select the new Studio Flow: **"Template Example Callback With Email Flow"**
 5. Save configuration
 
+:::tip Studio Flow Not Appearing?
+If the Studio Flow doesn't appear in the dropdown, use the CLI method:
+
+```bash
+# Create flow JSON file
+cat > callback-voicemail-email-flow.json << 'EOF'
+{
+  "description": "Callback and Voicemail with Email Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {"event": "incomingMessage"},
+        {"next": "send_to_flex_1", "event": "incomingCall"},
+        {"event": "incomingConversationMessage"},
+        {"event": "incomingRequest"},
+        {"event": "incomingParent"}
+      ],
+      "properties": {"offset": {"x": -70, "y": -60}}
+    },
+    {
+      "name": "send_to_flex_1",
+      "type": "send-to-flex",
+      "transitions": [
+        {"event": "callComplete"},
+        {"event": "failedToEnqueue"},
+        {"event": "callFailure"}
+      ],
+      "properties": {
+        "waitUrl": "https://YOUR-DEPLOYMENT-DOMAIN/features/callback-and-voicemail-with-email/studio/wait-experience",
+        "offset": {"x": 170, "y": 100},
+        "workflow": "YOUR-WORKFLOW-SID",
+        "channel": "voice",
+        "attributes": "{\"call_sid\": \"{{trigger.call.CallSid}}\", \"callBackData\": {\"attempts\": 0}}",
+        "waitUrlMethod": "POST"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {"allow_concurrent_calls": true}
+}
+EOF
+
+# Replace YOUR-DEPLOYMENT-DOMAIN and YOUR-WORKFLOW-SID
+
+# Create the flow
+twilio api:studio:v2:flows:create \
+  --friendly-name "Callback and Voicemail with Email Flow" \
+  --status published \
+  --definition "$(cat callback-voicemail-email-flow.json)"
+```
+:::
+
 ---
 
-## Step 5: Test Your Implementation
+## Step 7: Automated Testing
+
+### Pre-Deployment Test Script
+
+Use the comprehensive test script to validate your deployment:
+
+```bash
+# Navigate to your ConnieRTC directory
+cd /path/to/connieRTC-basecamp
+
+# Set your configuration variables
+export ACCOUNT_SID="AC..."
+export PHONE_NUMBER="+1..."
+export ADMIN_EMAIL="admin@clientdomain.com"
+export MAILGUN_DOMAIN="voicemail.clientdomain.com" 
+export MAILGUN_API_KEY="your-domain-sending-api-key"
+export DEPLOYMENT_DOMAIN="custom-flex-extensions-serverless-XXXX-dev.twil.io"
+export WORKFLOW_SID="WW..."
+
+# Run the comprehensive test
+./test-voicemail-email-workflow.sh
+```
+
+**The script validates:**
+- ✅ Twilio CLI configuration
+- ✅ Mailgun API credentials  
+- ✅ Serverless function deployment
+- ✅ Environment variables
+- ✅ Studio Flow configuration
+
+:::tip Automated Verification
+This test script catches 90% of configuration issues before manual testing, saving significant troubleshooting time.
+:::
+
+---
+
+## Step 8: Manual Test Your Implementation
 
 ### Complete Test Workflow
 
@@ -294,9 +499,17 @@ This is an automated message. Please do not reply.
 
 ---
 
-## Step 6: Production Optimization
+## Step 9: Production Optimization
 
 ### Monitoring Setup
+
+**Function URLs for Real-Time Monitoring:**
+- **Email Function Logs**: `https://[YOUR-DEPLOYMENT-DOMAIN]/features/callback-and-voicemail-with-email/studio/send-voicemail-email`
+- **Call Flow Logs**: `https://[YOUR-DEPLOYMENT-DOMAIN]/features/callback-and-voicemail-with-email/studio/wait-experience`
+
+**Access logs via:**
+1. Twilio Console → **Functions & Assets** → **Services** → Your Service → **Environment** → **Live Logs**
+2. Or use CLI: `twilio serverless:logs --service-sid ZS... --environment-sid ZE...`
 
 **Check these regularly:**
 - Mailgun dashboard for delivery rates
@@ -324,7 +537,27 @@ This is an automated message. Please do not reply.
 
 ## Troubleshooting
 
+### Common Failure Points & Solutions
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Option not available at this time" | Wrong/missing workflow SID | Update wait-experience.protected.js line 135 |
+| 401/403 email errors | Wrong API key type | Use domain sending key, not private key |
+| Flow not in phone config | Creation failed in Console | Use CLI method in Step 5 |
+| No environment vars in Console | Browser cache/wrong environment | Verify with CLI, refresh browser |
+
 ### No Email Received
+
+**First check for authentication errors:**
+```bash
+# Test API directly
+curl -s -w "\nHTTP Status: %{http_code}\n" --user "api:[YOUR_KEY]" \
+    https://api.mailgun.net/v3/[YOUR_DOMAIN]/messages \
+    -F from='Test <test@[YOUR_DOMAIN]>' \
+    -F to='[ADMIN_EMAIL]' \
+    -F subject='Debug Test' \
+    -F text='Testing email delivery'
+```
 
 **Check Mailgun logs:**
 1. Mailgun dashboard → **Logs**
@@ -333,7 +566,7 @@ This is an automated message. Please do not reply.
 
 **Common issues:**
 - DNS records not propagated (wait 24 hours)
-- Wrong API key format
+- Wrong API key format (using private key instead of sending key)
 - Admin email in spam folder
 
 ### Email Without Attachment

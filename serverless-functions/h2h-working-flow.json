@@ -1,0 +1,135 @@
+{
+  "description": "H2H Voicemail Only Flow - Working Version",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {"event": "incomingMessage"},
+        {"next": "welcome_message", "event": "incomingCall"},
+        {"event": "incomingConversationMessage"},
+        {"event": "incomingRequest"},
+        {"event": "incomingParent"}
+      ],
+      "properties": {
+        "offset": {"x": 0, "y": 0}
+      }
+    },
+    {
+      "name": "welcome_message",
+      "type": "say-play",
+      "transitions": [
+        {"next": "record_voicemail"}
+      ],
+      "properties": {
+        "offset": {"x": 200, "y": 0},
+        "voice": "Polly.Joanna",
+        "say": "Thank you for calling Hospital to Home, a division of Nevada Senior Services. Our hours are Monday through Friday from 9 AM to 5 PM. If you are experiencing a medical emergency, please hang up and dial 911. For all other callers, please leave a message with the date, time and reason for your call. All calls will be returned within 24 to 48 hours. Please leave your message after the tone."
+      }
+    },
+    {
+      "name": "record_voicemail",
+      "type": "record",
+      "transitions": [
+        {"next": "create_voicemail_task", "event": "recordingComplete"},
+        {"next": "goodbye_message", "event": "hangup"}
+      ],
+      "properties": {
+        "offset": {"x": 400, "y": 0},
+        "play_beep": true,
+        "finish_on_key": "*",
+        "timeout": 10,
+        "max_length": 300,
+        "transcribe": true
+      }
+    },
+    {
+      "name": "create_voicemail_task",
+      "type": "run-function",
+      "transitions": [
+        {"next": "success_message", "event": "success"},
+        {"next": "error_message", "event": "fail"}
+      ],
+      "properties": {
+        "offset": {"x": 600, "y": 0},
+        "service_sid": "ZS906734499c94e8fb7c2eca7c708f8f6b",
+        "environment_sid": "ZE30adc86dceb6cd00c6e999920ebd52c7",
+        "function_sid": "ZHc846a1775194f32b2cff7e4999609fe0",
+        "parameters": [
+          {
+            "key": "numberToCall",
+            "value": "{{trigger.call.From}}"
+          },
+          {
+            "key": "numberToCallFrom", 
+            "value": "{{trigger.call.To}}"
+          },
+          {
+            "key": "recordingSid",
+            "value": "{{widgets.record_voicemail.RecordingSid}}"
+          },
+          {
+            "key": "recordingUrl",
+            "value": "{{widgets.record_voicemail.RecordingUrl}}"
+          },
+          {
+            "key": "transcriptionText",
+            "value": "{{widgets.record_voicemail.TranscriptionText}}"
+          },
+          {
+            "key": "voicemailOnly",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    {
+      "name": "success_message",
+      "type": "say-play", 
+      "transitions": [
+        {"next": "goodbye_message"}
+      ],
+      "properties": {
+        "offset": {"x": 800, "y": -50},
+        "voice": "Polly.Joanna",
+        "say": "Your voicemail has been successfully recorded."
+      }
+    },
+    {
+      "name": "error_message",
+      "type": "say-play",
+      "transitions": [
+        {"next": "goodbye_message"}
+      ],
+      "properties": {
+        "offset": {"x": 800, "y": 50},
+        "voice": "Polly.Joanna",
+        "say": "Sorry, we encountered an error processing your voicemail. Please try calling again."
+      }
+    },
+    {
+      "name": "goodbye_message",
+      "type": "say-play",
+      "transitions": [
+        {"next": "end_call"}
+      ],
+      "properties": {
+        "offset": {"x": 1000, "y": 0},
+        "voice": "Polly.Joanna",
+        "say": "Thank you for calling. Goodbye."
+      }
+    },
+    {
+      "name": "end_call",
+      "type": "hangup",
+      "transitions": [],
+      "properties": {
+        "offset": {"x": 1200, "y": 0}
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

@@ -125,12 +125,7 @@ exports.handler = async (context, event, callback) => {
     holdMusicUrl = `https://${context.DOMAIN_NAME}/${holdMusicUrl}`;
   }
 
-  const { Digits, CallSid, QueueSid, mode, enqueuedTaskSid, skipGreeting, voicemailOnly } = event;
-  
-  // NOTE: Voicemail-only functionality now uses proper Professional Services approach
-  // Voicemail-only numbers should use Studio Record widget + create-callback function
-  // This waitUrl function is only for queue-based callback/voicemail options
-  
+  const { Digits, CallSid, QueueSid, mode, enqueuedTaskSid, skipGreeting } = event;
   switch (mode) {
     case 'initialize':
     case undefined:
@@ -353,128 +348,23 @@ exports.handler = async (context, event, callback) => {
     case 'record-voicemail':
       // Main logic for Recording the voicemail
       twiml.say(options.sayOptions, options.messages.recordVoicemailPrompt);
-      
-      // Build the callback URLs with voicemailOnly parameter if present
-      const voicemailOnlyParam = voicemailOnly === 'true' ? '&voicemailOnly=true' : '';
-      
-      // For voicemail-only mode, use Twilio Support's recommended TwiML pattern
-      if (voicemailOnly === 'true') {
-        // Simplified recording for voicemail-only lines
-        twiml.record({
-          action: `${baseUrl}?mode=voicemail-recorded&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}${voicemailOnlyParam}`,
-          method: 'POST',
-          playBeep: 'true',
-          transcribe: true,
-          timeout: 10,
-          finishOnKey: '*',
-          maxLength: 300 // 5 minutes max
-        });
-        // FALLBACK: If recording fails or caller hangs up, say message and hang up
-        twiml.say(options.sayOptions, options.messages.voicemailNotCaptured);
-        twiml.hangup();
-      } else {
-        // Original working logic for regular callback/voicemail (7027079496)
-        // Manually append caller and called number to the transcribeCallback, as it passes incorrect values when Caller Name Lookup is enabled
-        twiml.record({
-          action: `${baseUrl}?mode=voicemail-recorded&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}`,
-          transcribeCallback: `${baseUrl}?mode=submit-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}&calledNumber=${encodeURIComponent(
-            event.Called,
-          )}&callerNumber=${encodeURIComponent(event.Caller)}`,
-          method: 'GET',
-          playBeep: 'true',
-          transcribe: true,
-          timeout: 10,
-          finishOnKey: '*',
-        });
-        twiml.say(options.sayOptions, options.messages.voicemailNotCaptured);
-        twiml.redirect(`${baseUrl}?mode=record-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}`);
-      }
+      // Manually append caller and called number to the transcribeCallback, as it passes incorrect values when Caller Name Lookup is enabled
+      twiml.record({
+        action: `${baseUrl}?mode=voicemail-recorded&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}`,
+        transcribeCallback: `${baseUrl}?mode=submit-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}&calledNumber=${encodeURIComponent(
+          event.Called,
+        )}&callerNumber=${encodeURIComponent(event.Caller)}`,
+        method: 'GET',
+        playBeep: 'true',
+        transcribe: true,
+        timeout: 10,
+        finishOnKey: '*',
+      });
+      twiml.say(options.sayOptions, options.messages.voicemailNotCaptured);
+      twiml.redirect(`${baseUrl}?mode=record-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}`);
       return callback(null, twiml);
 
     case 'voicemail-recorded':
-      // For voicemail-only mode, create a Flex task and end the call
-      if (voicemailOnly === 'true') {
-        console.log('Voicemail-only: Processing recorded voicemail');
-        
-        if (event.RecordingUrl && event.RecordingDuration > 0) {
-          // Create voicemail task using the same workflow as regular voicemails
-          const enqueuedWorkflowSid = 'WW68ed6f6bc555f21e436810af747722a9'; // NSS Assign to Anyone workflow
-          
-          try {
-            const taskAttributes = {
-              call_sid: CallSid,
-              direction: 'inbound',
-              from: event.From,
-              name: event.From,
-              callBackData: {
-                isVoicemail: true,
-                voicemailOnly: true,
-                recordingUrl: event.RecordingUrl,
-                recordingDuration: event.RecordingDuration,
-                recordingSid: event.RecordingSid,
-                transcription: event.TranscriptionText || 'Pending transcription...',
-                phoneNumber: event.Called,
-                attempts: 0
-              }
-            };
-
-            const newVoicemailTask = await TaskRouterOperations.createTask({
-              context,
-              workflowSid: enqueuedWorkflowSid,
-              taskChannel: 'voice',
-              attributes: taskAttributes,
-              priority: 50,
-              timeout: 86400 // 24 hours
-            });
-
-            console.log(`Voicemail-only task created: ${newVoicemailTask.sid}`);
-            
-            // Send email notification manually
-            if (context.ADMIN_EMAIL && context.MAILGUN_DOMAIN && context.MAILGUN_API_KEY) {
-              try {
-                console.log('Sending voicemail-only email notification...');
-                
-                const emailFunction = Runtime.getFunctions()['features/callback-and-voicemail-with-email/studio/send-voicemail-email'].path;
-                const emailHandler = require(emailFunction);
-                
-                await new Promise((resolve, reject) => {
-                  emailHandler.handler(context, {
-                    RecordingUrl: event.RecordingUrl,
-                    RecordingSid: event.RecordingSid,
-                    TranscriptionText: event.TranscriptionText || 'Transcription not available',
-                    From: event.From,
-                    To: event.Called,
-                    Timestamp: Math.floor(Date.now() / 1000)
-                  }, (error, result) => {
-                    if (error) {
-                      console.error('Email sending failed:', error);
-                      reject(error);
-                    } else {
-                      console.log('Email sent successfully');
-                      resolve(result);
-                    }
-                  });
-                });
-              } catch (emailError) {
-                console.error('Error sending email:', emailError);
-              }
-            }
-            
-            twiml.say(options.sayOptions, options.messages.voicemailRecorded);
-          } catch (error) {
-            console.error('Error creating voicemail-only task:', error);
-            twiml.say(options.sayOptions, options.messages.processingError);
-          }
-        } else {
-          console.log('Voicemail-only: No recording captured');
-          twiml.say(options.sayOptions, options.messages.voicemailNotCaptured);
-        }
-        
-        twiml.hangup();
-        return callback(null, twiml);
-      }
-      
-      // Original voicemail-recorded logic for regular callback/voicemail (7027079496)
       // Send email notification if configured
       if (context.ADMIN_EMAIL && context.MAILGUN_DOMAIN && context.MAILGUN_API_KEY) {
         try {

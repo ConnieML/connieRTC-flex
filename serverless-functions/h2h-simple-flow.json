@@ -1,0 +1,69 @@
+{
+  "description": "H2H Simple Voicemail Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {"event": "incomingMessage"},
+        {"next": "record_voicemail", "event": "incomingCall"},
+        {"event": "incomingConversationMessage"},
+        {"event": "incomingRequest"},
+        {"event": "incomingParent"}
+      ],
+      "properties": {
+        "offset": {"x": 0, "y": 0}
+      }
+    },
+    {
+      "name": "record_voicemail",
+      "type": "record",
+      "transitions": [
+        {"next": "create_task", "event": "recordingComplete"}
+      ],
+      "properties": {
+        "offset": {"x": 200, "y": 0},
+        "play_beep": true,
+        "transcribe": true,
+        "max_length": 300
+      }
+    },
+    {
+      "name": "create_task",
+      "type": "run-function",
+      "transitions": [],
+      "properties": {
+        "offset": {"x": 400, "y": 0},
+        "service_sid": "ZS906734499c94e8fb7c2eca7c708f8f6b",
+        "environment_sid": "ZE30adc86dceb6cd00c6e999920ebd52c7",
+        "function_sid": "ZHc846a1775194f32b2cff7e4999609fe0",
+        "parameters": [
+          {
+            "key": "numberToCall",
+            "value": "{{trigger.call.From}}"
+          },
+          {
+            "key": "numberToCallFrom", 
+            "value": "{{trigger.call.To}}"
+          },
+          {
+            "key": "recordingSid",
+            "value": "{{widgets.record_voicemail.RecordingSid}}"
+          },
+          {
+            "key": "recordingUrl",
+            "value": "{{widgets.record_voicemail.RecordingUrl}}"
+          },
+          {
+            "key": "voicemailOnly",
+            "value": "true"
+          }
+        ]
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
