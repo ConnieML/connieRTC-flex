@@ -1,0 +1,166 @@
+{
+  "description": "NSS Voicemail Direct Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingCall",
+          "next": "say_greeting"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "say_greeting",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete",
+          "next": "record_voicemail"
+        }
+      ],
+      "properties": {
+        "say": "Thank you for calling. Please leave a message after the tone. When you are finished, you may hang up or press the star key.",
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 200,
+          "y": 100
+        }
+      }
+    },
+    {
+      "name": "record_voicemail",
+      "type": "record-voicemail",
+      "transitions": [
+        {
+          "event": "recordingComplete",
+          "next": "submit_voicemail"
+        },
+        {
+          "event": "noAudio",
+          "next": "no_message"
+        }
+      ],
+      "properties": {
+        "transcribe": true,
+        "transcription_callback_url": "https://custom-flex-extensions-serverless-4044-dev.twil.io/features/voicemail-only-with-email/send-voicemail-email",
+        "max_length": 300,
+        "play_beep": "true",
+        "finish_on_key": "*",
+        "offset": {
+          "x": 400,
+          "y": 200
+        }
+      }
+    },
+    {
+      "name": "submit_voicemail",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success",
+          "next": "thank_caller"
+        },
+        {
+          "event": "fail",
+          "next": "thank_caller"
+        }
+      ],
+      "properties": {
+        "url": "https://custom-flex-extensions-serverless-4044-dev.twil.io/features/voicemail-only-with-email/voicemail-greeting",
+        "parameters": [
+          {
+            "key": "mode",
+            "value": "voicemail-recorded"
+          },
+          {
+            "key": "CallSid",
+            "value": "{{trigger.call.CallSid}}"
+          },
+          {
+            "key": "From",
+            "value": "{{trigger.call.From}}"
+          },
+          {
+            "key": "To",
+            "value": "{{trigger.call.To}}"
+          },
+          {
+            "key": "RecordingUrl",
+            "value": "{{widgets.record_voicemail.RecordingUrl}}"
+          },
+          {
+            "key": "RecordingDuration",
+            "value": "{{widgets.record_voicemail.RecordingDuration}}"
+          },
+          {
+            "key": "RecordingSid",
+            "value": "{{widgets.record_voicemail.RecordingSid}}"
+          }
+        ],
+        "offset": {
+          "x": 600,
+          "y": 300
+        }
+      }
+    },
+    {
+      "name": "thank_caller",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete",
+          "next": "end_call"
+        }
+      ],
+      "properties": {
+        "say": "Your voicemail has been successfully recorded. Thank you for calling. Goodbye.",
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 800,
+          "y": 400
+        }
+      }
+    },
+    {
+      "name": "no_message",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete",
+          "next": "end_call"
+        }
+      ],
+      "properties": {
+        "say": "Sorry, we weren't able to capture your message. Please try again.",
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 400,
+          "y": 400
+        }
+      }
+    },
+    {
+      "name": "end_call",
+      "type": "hangup",
+      "transitions": [],
+      "properties": {
+        "offset": {
+          "x": 1000,
+          "y": 500
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

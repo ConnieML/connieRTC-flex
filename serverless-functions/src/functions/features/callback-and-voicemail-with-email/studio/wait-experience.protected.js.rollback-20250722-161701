@@ -113,6 +113,8 @@ exports.handler = async (context, event, callback) => {
   console.log('Mode:', event.mode);
   console.log('CallSid:', event.CallSid);
   console.log('QueueSid:', event.QueueSid);
+  console.log('voicemailOnly parameter:', event.voicemailOnly);
+  console.log('voicemailOnly type:', typeof event.voicemailOnly);
   console.log('=== WAIT-EXPERIENCE DEBUG END ===');
 
   const twiml = new Twilio.twiml.VoiceResponse();
@@ -127,9 +129,22 @@ exports.handler = async (context, event, callback) => {
 
   const { Digits, CallSid, QueueSid, mode, enqueuedTaskSid, skipGreeting, voicemailOnly } = event;
   
-  // NOTE: Voicemail-only functionality now uses proper Professional Services approach
-  // Voicemail-only numbers should use Studio Record widget + create-callback function
-  // This waitUrl function is only for queue-based callback/voicemail options
+  // VOICEMAIL-ONLY MODE: Special handling for dedicated voicemail lines
+  // This ONLY activates when voicemailOnly=true is passed from Studio Flow
+  // Without this parameter, function behaves exactly as before
+  if (voicemailOnly === 'true' && (mode === 'initialize' || mode === undefined)) {
+    console.log('VOICEMAIL-ONLY MODE ACTIVATED for CallSid:', CallSid);
+    
+    // For voicemail-only, we skip the queue lookup and go directly to recording
+    // We'll create a minimal task object for the voicemail recording flow
+    const voicemailOnlyTaskSid = 'VOICEMAIL-ONLY-' + CallSid;
+    
+    // Redirect to the existing record-voicemail mode
+    twiml.redirect(`${baseUrl}?mode=record-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${voicemailOnlyTaskSid}&voicemailOnly=true`);
+    
+    // Return early - skip all the normal callback/hold logic
+    return callback(null, twiml);
+  }
   
   switch (mode) {
     case 'initialize':
@@ -357,7 +372,7 @@ exports.handler = async (context, event, callback) => {
       // Build the callback URLs with voicemailOnly parameter if present
       const voicemailOnlyParam = voicemailOnly === 'true' ? '&voicemailOnly=true' : '';
       
-      // For voicemail-only mode, use Twilio Support's recommended TwiML pattern
+      // For voicemail-only mode, use a simpler recording flow
       if (voicemailOnly === 'true') {
         // Simplified recording for voicemail-only lines
         twiml.record({
@@ -369,17 +384,14 @@ exports.handler = async (context, event, callback) => {
           finishOnKey: '*',
           maxLength: 300 // 5 minutes max
         });
-        // FALLBACK: If recording fails or caller hangs up, say message and hang up
-        twiml.say(options.sayOptions, options.messages.voicemailNotCaptured);
-        twiml.hangup();
+        // No additional TwiML after Record verb - Twilio handles the action URL callback
       } else {
-        // Original working logic for regular callback/voicemail (7027079496)
-        // Manually append caller and called number to the transcribeCallback, as it passes incorrect values when Caller Name Lookup is enabled
+        // Original complex recording flow for regular callback/voicemail (7027079496)
         twiml.record({
-          action: `${baseUrl}?mode=voicemail-recorded&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}`,
+          action: `${baseUrl}?mode=voicemail-recorded&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}${voicemailOnlyParam}`,
           transcribeCallback: `${baseUrl}?mode=submit-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}&calledNumber=${encodeURIComponent(
             event.Called,
-          )}&callerNumber=${encodeURIComponent(event.Caller)}`,
+          )}&callerNumber=${encodeURIComponent(event.Caller)}${voicemailOnlyParam}`,
           method: 'GET',
           playBeep: 'true',
           transcribe: true,
@@ -387,14 +399,14 @@ exports.handler = async (context, event, callback) => {
           finishOnKey: '*',
         });
         twiml.say(options.sayOptions, options.messages.voicemailNotCaptured);
-        twiml.redirect(`${baseUrl}?mode=record-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}`);
+        twiml.redirect(`${baseUrl}?mode=record-voicemail&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}${voicemailOnlyParam}`);
       }
       return callback(null, twiml);
 
     case 'voicemail-recorded':
       // For voicemail-only mode, create a Flex task and end the call
       if (voicemailOnly === 'true') {
-        console.log('Voicemail-only: Processing recorded voicemail');
+        console.log('Voicemail-only: Creating Flex task for recorded voicemail');
         
         if (event.RecordingUrl && event.RecordingDuration > 0) {
           // Create voicemail task using the same workflow as regular voicemails

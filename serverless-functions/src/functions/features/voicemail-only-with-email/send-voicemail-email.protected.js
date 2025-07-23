@@ -2,9 +2,14 @@
  * Send voicemail email notification with recording attachment via Mailgun
  * This function is triggered after a voicemail is recorded and sends an email
  * to the admin with the recording attached.
+ * 
+ * For voicemail-only-with-email feature:
+ * - Also updates the Flex task with transcription when available
  */
 const axios = require('axios');
 const FormData = require('form-data');
+const TaskRouterOperations = require(Runtime.getFunctions()['common/twilio-wrappers/taskrouter'].path);
+const { twilioExecute } = require(Runtime.getFunctions()['common/helpers/function-helper'].path);
 
 exports.handler = async function(context, event, callback) {
   console.log('Email notification handler triggered with event:', JSON.stringify(event, null, 2));
@@ -141,10 +146,8 @@ This is an automated message. Please do not reply.
       // Prepare email without attachment
       const form = new FormData();
       form.append('from', `Voicemail Alert <voicemail@${context.MAILGUN_DOMAIN}>`);
-      // Support multiple admin emails (comma-separated)
-      const adminEmails = context.ADMIN_EMAIL.includes(',') 
-        ? context.ADMIN_EMAIL 
-        : context.ADMIN_EMAIL;
+      // Support multiple admin emails (comma-separated) - consistent parsing
+      const adminEmails = context.ADMIN_EMAIL.split(',').map(email => email.trim()).join(',');
       form.append('to', adminEmails);
       form.append('subject', `New Voicemail from ${caller} (Large File - Download Link)`);
       form.append('text', emailBody);
@@ -412,6 +415,68 @@ This is an automated message. Please do not reply.
       emailCount: adminEmailArray.length,
       emailFormat: 'html_with_text_fallback'
     });
+
+    // Update Flex task with transcription if available
+    if (event.CallSid && transcriptionText && transcriptionText !== 'Transcription not available') {
+      try {
+        // Find the task by call SID
+        const workflowSid = context.VOICEMAIL_WORKFLOW_SID || 'WW68ed6f6bc555f21e436810af747722a9';
+        
+        const tasks = await twilioExecute(context, async (client) => {
+          const taskList = await client.taskrouter
+            .workspaces(context.TWILIO_FLEX_WORKSPACE_SID)
+            .tasks
+            .list({
+              assignmentStatus: ['pending', 'reserved'],
+              limit: 50
+            });
+          return taskList;
+        });
+
+        const voicemailTask = tasks.find(task => {
+          const attributes = JSON.parse(task.attributes || '{}');
+          return attributes.call_sid === event.CallSid;
+        });
+
+        if (voicemailTask) {
+          const currentAttributes = JSON.parse(voicemailTask.attributes || '{}');
+          const updatedAttributes = {
+            ...currentAttributes,
+            callBackData: {
+              ...currentAttributes.callBackData,
+              transcription: transcriptionText,
+              transcriptionStatus: 'completed',
+              emailSent: true,
+              emailSentAt: new Date().toISOString()
+            }
+          };
+
+          await twilioExecute(context, (client) =>
+            client.taskrouter
+              .workspaces(context.TWILIO_FLEX_WORKSPACE_SID)
+              .tasks(voicemailTask.sid)
+              .update({
+                attributes: JSON.stringify(updatedAttributes)
+              })
+          );
+
+          console.log('Task updated with transcription:', {
+            taskSid: voicemailTask.sid,
+            callSid: event.CallSid
+          });
+        } else {
+          console.warn('Could not find task to update with transcription:', {
+            callSid: event.CallSid
+          });
+        }
+      } catch (taskError) {
+        console.error('Error updating task with transcription:', {
+          error: taskError.message,
+          callSid: event.CallSid
+        });
+        // Don't fail the email send if task update fails
+      }
+    }
 
     return callback(null, { 
       success: true, 

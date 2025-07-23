@@ -1,0 +1,147 @@
+{
+  "description": "H2H Voicemail Only Flow - Direct Recording Without Queue",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {"event": "incomingMessage"},
+        {"next": "welcome_message", "event": "incomingCall"},
+        {"event": "incomingConversationMessage"},
+        {"event": "incomingRequest"},
+        {"event": "incomingParent"}
+      ],
+      "properties": {
+        "offset": {"x": 0, "y": 0}
+      }
+    },
+    {
+      "name": "welcome_message",
+      "type": "say-play",
+      "transitions": [
+        {"next": "record_voicemail"}
+      ],
+      "properties": {
+        "offset": {"x": 200, "y": 0},
+        "voice": "Polly.Joanna",
+        "say": "Thank you for calling. Please leave your message after the tone. When you are finished recording, you may hang up or press the star key."
+      }
+    },
+    {
+      "name": "record_voicemail",
+      "type": "record-voicemail",
+      "transitions": [
+        {"next": "create_voicemail_task", "event": "recordingComplete"},
+        {"next": "recording_failed", "event": "noAudio"},
+        {"next": "recording_failed", "event": "hangup"}
+      ],
+      "properties": {
+        "offset": {"x": 400, "y": 0},
+        "play_beep": true,
+        "finish_on_key": "*",
+        "timeout": 10,
+        "max_length": 300,
+        "transcribe": true,
+        "trim_silence": true,
+        "recording_status_callback": "",
+        "recording_status_callback_method": "POST"
+      }
+    },
+    {
+      "name": "create_voicemail_task",
+      "type": "run-function",
+      "transitions": [
+        {"next": "success_message", "event": "success"},
+        {"next": "error_message", "event": "fail"}
+      ],
+      "properties": {
+        "offset": {"x": 600, "y": 0},
+        "service_sid": "{{flow.variables.SERVICE_SID}}",
+        "environment_sid": "{{flow.variables.ENVIRONMENT_SID}}",
+        "function_sid": "{{flow.variables.CREATE_CALLBACK_FUNCTION_SID}}",
+        "parameters": [
+          {
+            "key": "numberToCall",
+            "value": "{{trigger.call.From}}"
+          },
+          {
+            "key": "numberToCallFrom", 
+            "value": "{{trigger.call.To}}"
+          },
+          {
+            "key": "recordingSid",
+            "value": "{{widgets.record_voicemail.RecordingSid}}"
+          },
+          {
+            "key": "recordingUrl",
+            "value": "{{widgets.record_voicemail.RecordingUrl}}"
+          },
+          {
+            "key": "transcriptionSid",
+            "value": "{{widgets.record_voicemail.TranscriptionSid}}"
+          },
+          {
+            "key": "transcriptionText",
+            "value": "{{widgets.record_voicemail.TranscriptionText}}"
+          },
+          {
+            "key": "callSid",
+            "value": "{{trigger.call.CallSid}}"
+          },
+          {
+            "key": "voicemailOnly",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    {
+      "name": "success_message",
+      "type": "say-play", 
+      "transitions": [
+        {"next": "end_call"}
+      ],
+      "properties": {
+        "offset": {"x": 800, "y": -100},
+        "voice": "Polly.Joanna",
+        "say": "Your voicemail has been successfully recorded. Thank you for calling. Goodbye."
+      }
+    },
+    {
+      "name": "recording_failed",
+      "type": "say-play",
+      "transitions": [
+        {"next": "end_call"}
+      ],
+      "properties": {
+        "offset": {"x": 600, "y": 200},
+        "voice": "Polly.Joanna", 
+        "say": "Sorry, we weren't able to capture your message. Please try calling again. Goodbye."
+      }
+    },
+    {
+      "name": "error_message",
+      "type": "say-play",
+      "transitions": [
+        {"next": "end_call"}
+      ],
+      "properties": {
+        "offset": {"x": 800, "y": 100},
+        "voice": "Polly.Joanna",
+        "say": "Sorry, we encountered an error processing your voicemail. Please try calling again. Goodbye."
+      }
+    },
+    {
+      "name": "end_call",
+      "type": "hangup",
+      "transitions": [],
+      "properties": {
+        "offset": {"x": 1000, "y": 0}
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

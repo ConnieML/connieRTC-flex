@@ -34,6 +34,7 @@ exports.handler = prepareStudioFunction(requiredParameters, async (context, even
       TranscriptionText,
       isDeleted,
       taskChannel: overriddenTaskChannel,
+      voicemailOnly,
     } = event;
 
     const result = await CallbackOperations.createCallbackTask({
@@ -56,6 +57,39 @@ exports.handler = prepareStudioFunction(requiredParameters, async (context, even
     });
 
     const { status, data: task } = result;
+
+    // Send email notification for voicemail-only tasks
+    if (voicemailOnly === 'true' && (recordingSid || RecordingSid) && context.ADMIN_EMAIL && context.MAILGUN_DOMAIN && context.MAILGUN_API_KEY) {
+      try {
+        console.log('Sending voicemail-only email notification...');
+        
+        const emailFunction = Runtime.getFunctions()['features/callback-and-voicemail-with-email/studio/send-voicemail-email'].path;
+        const emailHandler = require(emailFunction);
+        
+        await new Promise((resolve, reject) => {
+          emailHandler.handler(context, {
+            RecordingUrl: recordingUrl || RecordingUrl,
+            RecordingSid: recordingSid || RecordingSid,
+            TranscriptionText: transcriptText || TranscriptionText || 'Transcription not available',
+            From: numberToCall,
+            To: numberToCallFrom,
+            Timestamp: Math.floor(Date.now() / 1000)
+          }, (error, result) => {
+            if (error) {
+              console.error('Email sending failed:', error);
+              reject(error);
+            } else {
+              console.log('Email sent successfully for voicemail-only task:', task.sid);
+              resolve(result);
+            }
+          });
+        });
+      } catch (emailError) {
+        console.error('Error sending voicemail-only email:', emailError);
+        // Don't fail the task creation if email fails
+      }
+    }
+
     response.setStatusCode(status);
     response.setBody({ taskSid: task.sid, ...extractStandardResponse(result) });
     return callback(null, response);

@@ -356,6 +356,180 @@ import Link from '@docusaurus/Link';
 4. Push to `main` branch for automatic GitHub Pages deployment
 5. Deployment typically completes in 2-3 minutes
 
+## 🚨 CRITICAL: Callback-and-Voicemail-with-Email Production Deployment Protocol
+
+**This is a PROVEN, SUCCESSFUL deployment workflow. Future AI agents MUST follow this EXACT sequence to avoid repeated failures.**
+
+### Pre-Deployment Requirements Checklist
+
+**NEVER start deployment without ALL of the following information:**
+
+1. **Twilio Account Details**
+   - Account SID (format: `AC...`)
+   - Auth Token 
+   - Twilio CLI profile configured and active
+
+2. **Twilio Flex Configuration** 
+   - Workspace SID (format: `WS...`)
+   - Workflow SID for "Assign to Anyone" workflow (format: `WW...`)
+
+3. **Phone Number & Mailgun Configuration**
+   - Phone number to configure (format: `+1...`)
+   - Admin email address(es) for notifications
+   - Mailgun domain (format: `phonenumber.connie.center`)
+   - Mailgun domain-specific sending API key (NOT private API key)
+
+### Step-by-Step Deployment Protocol (NO EXCEPTIONS)
+
+#### Step 1: Verify Account Access
+```bash
+twilio profiles:list
+twilio profiles:use [ACCOUNT_NAME]
+```
+**✅ Confirm**: Active profile shows correct Account SID
+
+#### Step 2: Test Mailgun API Credentials FIRST
+```bash
+curl -s -w "\nHTTP Status: %{http_code}\n" --user "api:[MAILGUN_API_KEY]" \
+    https://api.mailgun.net/v3/[MAILGUN_DOMAIN]/messages \
+    -F from='Test <test@[MAILGUN_DOMAIN]>' \
+    -F to='[ADMIN_EMAIL]' \
+    -F subject='[ACCOUNT] Production Mailgun API Test' \
+    -F text='Testing Mailgun API credentials before deployment.'
+```
+**✅ Required**: Must return HTTP 200 and Mailgun message ID
+**❌ STOP**: If this fails, get correct API credentials before proceeding
+
+#### Step 3: Update Environment Configuration
+**File**: `/serverless-functions/.env`
+```env
+# Update ALL of these values for the target account
+ACCOUNT_SID=[TARGET_ACCOUNT_SID]
+AUTH_TOKEN=[TARGET_AUTH_TOKEN]
+TWILIO_FLEX_WORKSPACE_SID=[TARGET_WORKSPACE_SID]
+ADMIN_EMAIL=[TARGET_ADMIN_EMAIL]
+MAILGUN_DOMAIN=[TARGET_MAILGUN_DOMAIN]
+MAILGUN_API_KEY=[TARGET_MAILGUN_API_KEY]
+```
+
+#### Step 4: Update Hardcoded Workflow SID (CRITICAL)
+**File**: `/serverless-functions/src/functions/features/callback-and-voicemail-with-email/studio/wait-experience.protected.js`
+**Line**: ~135
+```javascript
+// TEMPORARY FIX: Hardcode workflow SID to bypass buggy queue friendlyName logic
+const enqueuedWorkflowSid = '[TARGET_WORKFLOW_SID]'; // [ACCOUNT] Assign to Anyone workflow
+```
+**⚠️ CRITICAL**: This step causes "option not available" errors if skipped
+
+#### Step 5: Deploy Serverless Functions
+```bash
+npm run deploy
+```
+**✅ Verify**: Note the deployment domain (e.g., `custom-flex-extensions-serverless-XXXX-dev.twil.io`)
+
+#### Step 6: Create Studio Flow
+**IMPORTANT**: Manual Console creation often fails. Use CLI approach:
+
+**Create JSON file** (e.g., `[account]-callback-voicemail-email-flow.json`):
+```json
+{
+  "description": "[ACCOUNT] Callback and Voicemail with Email Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {"event": "incomingMessage"},
+        {"next": "send_to_flex_1", "event": "incomingCall"},
+        {"event": "incomingConversationMessage"},
+        {"event": "incomingRequest"},
+        {"event": "incomingParent"}
+      ],
+      "properties": {
+        "offset": {"x": -70, "y": -60}
+      }
+    },
+    {
+      "name": "send_to_flex_1",
+      "type": "send-to-flex",
+      "transitions": [
+        {"event": "callComplete"},
+        {"event": "failedToEnqueue"},
+        {"event": "callFailure"}
+      ],
+      "properties": {
+        "waitUrl": "https://[DEPLOYMENT_DOMAIN]/features/callback-and-voicemail-with-email/studio/wait-experience",
+        "offset": {"x": 170, "y": 100},
+        "workflow": "[TARGET_WORKFLOW_SID]",
+        "channel": "voice",
+        "attributes": "{\"call_sid\": \"{{trigger.call.CallSid}}\", \"callBackData\": {\"attempts\": 0}}",
+        "waitUrlMethod": "POST"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
+```
+
+**Deploy Studio Flow**:
+```bash
+twilio api:studio:v2:flows:create --friendly-name "[ACCOUNT] Callback and Voicemail with Email Flow" --status published --definition "$(cat [account]-callback-voicemail-email-flow.json)"
+```
+
+#### Step 7: Connect Phone Number
+**In Twilio Console**: Phone Numbers → Manage → [PHONE_NUMBER] → Voice Configuration → Studio Flow → Select "[ACCOUNT] Callback and Voicemail with Email Flow"
+
+#### Step 8: Test Complete Workflow
+1. **Call** the phone number
+2. **Press** `*` when prompted  
+3. **Press** `2` for voicemail
+4. **Record** a test message
+5. **Verify**:
+   - Voicemail task appears in Flex queue
+   - Email notification sent to admin email with recording attached
+
+### Function URLs for Monitoring
+- **Email Function**: `https://[DEPLOYMENT_DOMAIN]/features/callback-and-voicemail-with-email/studio/send-voicemail-email`
+- **Wait Experience Function**: `https://[DEPLOYMENT_DOMAIN]/features/callback-and-voicemail-with-email/studio/wait-experience`
+
+### Common Failure Points & Solutions
+
+**❌ "Option not available at this time"**
+- **Cause**: Forgot to update workflow SID in Step 4
+- **Solution**: Update `wait-experience.protected.js` and redeploy
+
+**❌ Email function 401/403 errors**
+- **Cause**: Wrong Mailgun API key (using private instead of domain-specific sending key)
+- **Solution**: Get correct domain-specific sending API key from Mailgun
+
+**❌ Studio Flow not appearing in phone number configuration**
+- **Cause**: Flow not published or creation failed
+- **Solution**: Use CLI creation method (Step 6) instead of manual Console creation
+
+**❌ Environment variables not visible in Console**
+- **Cause**: Browser caching or wrong environment selected
+- **Solution**: Verify deployment succeeded, check correct service/environment in Console
+
+### Terminology Standards
+- **✅ CORRECT**: "Hold Music TwiML URL" (in Studio Flow Send to Flex widget)
+- **❌ WRONG**: "Wait URL" (this doesn't exist and causes confusion)
+
+### Success Metrics
+- **First-call success**: All components work without debugging
+- **Email delivery**: Admin receives voicemail with audio attachment
+- **Task creation**: Voicemail appears in Flex queue for agent handling
+- **Clean logs**: No authentication errors or failures in function logs
+
+### Proven Results
+- **DevSandBox**: ✅ Working after authentication fixes
+- **HHOVV**: ✅ Working after workflow SID correction  
+- **NSS Production**: ✅ Working on FIRST deployment following this protocol
+
+**Future AI agents**: Following this exact protocol resulted in first-try success on NSS production. Deviation from this sequence WILL result in repeated failures and user frustration.
+
 ---
 
 *This file should be updated whenever major architectural decisions are made or workflows change. Future AI agents: please read this entire file before starting work on ConnieRTC.*

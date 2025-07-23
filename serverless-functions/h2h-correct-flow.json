@@ -1,0 +1,96 @@
+{
+  "description": "H2H Voicemail Only Flow - Correct Widget Types",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {"event": "incomingMessage"},
+        {"next": "welcome_message", "event": "incomingCall"},
+        {"event": "incomingConversationMessage"},
+        {"event": "incomingRequest"},
+        {"event": "incomingParent"}
+      ],
+      "properties": {
+        "offset": {"x": 0, "y": 0}
+      }
+    },
+    {
+      "name": "welcome_message",
+      "type": "say-play",
+      "transitions": [
+        {"next": "record_voicemail"}
+      ],
+      "properties": {
+        "offset": {"x": 200, "y": 0},
+        "voice": "Polly.Joanna",
+        "say": "Thank you for calling Hospital to Home. Please leave your message after the tone."
+      }
+    },
+    {
+      "name": "record_voicemail",
+      "type": "record-voicemail",
+      "transitions": [
+        {"next": "create_task", "event": "recordingComplete"}
+      ],
+      "properties": {
+        "offset": {"x": 400, "y": 0},
+        "transcribe": true,
+        "max_length": 300,
+        "play_beep": true
+      }
+    },
+    {
+      "name": "create_task",
+      "type": "run-function",
+      "transitions": [
+        {"next": "end_call", "event": "success"},
+        {"next": "end_call", "event": "fail"}
+      ],
+      "properties": {
+        "offset": {"x": 600, "y": 0},
+        "service_sid": "ZS906734499c94e8fb7c2eca7c708f8f6b",
+        "environment_sid": "ZE30adc86dceb6cd00c6e999920ebd52c7",
+        "function_sid": "ZHc846a1775194f32b2cff7e4999609fe0",
+        "parameters": [
+          {
+            "key": "numberToCall",
+            "value": "{{trigger.call.From}}"
+          },
+          {
+            "key": "numberToCallFrom", 
+            "value": "{{trigger.call.To}}"
+          },
+          {
+            "key": "recordingSid",
+            "value": "{{widgets.record_voicemail.RecordingSid}}"
+          },
+          {
+            "key": "recordingUrl",
+            "value": "{{widgets.record_voicemail.RecordingUrl}}"
+          },
+          {
+            "key": "transcriptionText",
+            "value": "{{widgets.record_voicemail.TranscriptionText}}"
+          },
+          {
+            "key": "voicemailOnly",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    {
+      "name": "end_call",
+      "type": "hangup",
+      "transitions": [],
+      "properties": {
+        "offset": {"x": 800, "y": 0}
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
