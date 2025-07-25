@@ -79,9 +79,13 @@
         "enabled": true,
         "url": "{{task.attributes.profile_url}}",
         "should_display_url_when_no_tasks": true,
-        "display_url_when_no_tasks": "https://v1.connie.plus",
+        "display_url_when_no_tasks": "https://v2.connie.plus/channels",
         "enable_url_tab": true,
-        "url_tab_title": "Web Page"
+        "url_tab_title": "Agent Tools",
+        "crm_container_allowed_origins": [
+          "https://v1.connie.plus",
+          "https://v2.connie.plus"
+        ]
       },
       "internal_call": {
         "enabled": true,
