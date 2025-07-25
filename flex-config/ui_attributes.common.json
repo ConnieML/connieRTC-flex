@@ -84,7 +84,11 @@
         "url_tab_title": "Agent Tools",
         "crm_container_allowed_origins": [
           "https://v1.connie.plus",
-          "https://v2.connie.plus"
+          "https://v2.connie.plus",
+          "https://dev.connie.team",
+          "https://connie.team",
+          "https://nss.connie.team",
+          "https://hhovv.connie.team"
         ]
       },
       "internal_call": {
