@@ -333,12 +333,20 @@ import Link from '@docusaurus/Link';
 **Location**: `/docs/static/mockups/admin-ui-mockups/`
 **Live URL**: https://docs.connie.one/mockups/admin-ui-mockups/
 
+**Current Access**: Public (linked from password-protected connie.one dataroom)
+**Future Todo**: Gate mockups folder for private stakeholder access (see todo list)
+
 Professional HTML mockups using Twilio Paste design framework:
 - `index.html` - Main Admin Dashboard (client overview, provider status, metrics)
 - `onboarding.html` - New Client Onboarding Wizard (5-step process)
 - `deployment.html` - Deployment Pipeline (prevents July 22nd incidents)
 - `client-detail.html` - Client Management Detail View (HHOVV example)
 - `billing.html` - Billing & Usage Analytics (revenue tracking)
+
+**Stakeholder Access Strategy**: 
+- Mockups are currently public but not easily discoverable
+- Link provided in connie.one dataroom for investor access
+- Future enhancement: Implement password protection or private hosting
 
 **IMPORTANT for Future Agents**: When creating new mockups or prototypes:
 1. Always add them to `/docs/static/mockups/[feature-name]/`
