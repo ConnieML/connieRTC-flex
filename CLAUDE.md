@@ -327,7 +327,34 @@ import Link from '@docusaurus/Link';
 - **Testing**: Multi-test validation before considering complete
 - **Environment Validation**: Robust validation prevents deployment-time failures
 
-## Current State (July 2024)
+## UI Mockups & Prototyping
+
+### **Admin Platform Mockups (July 2025)**
+**Location**: `/docs/static/mockups/admin-ui-mockups/`
+**Live URL**: https://docs.connie.one/mockups/admin-ui-mockups/
+
+Professional HTML mockups using Twilio Paste design framework:
+- `index.html` - Main Admin Dashboard (client overview, provider status, metrics)
+- `onboarding.html` - New Client Onboarding Wizard (5-step process)
+- `deployment.html` - Deployment Pipeline (prevents July 22nd incidents)
+- `client-detail.html` - Client Management Detail View (HHOVV example)
+- `billing.html` - Billing & Usage Analytics (revenue tracking)
+
+**IMPORTANT for Future Agents**: When creating new mockups or prototypes:
+1. Always add them to `/docs/static/mockups/[feature-name]/`
+2. Use Twilio Paste CSS for consistency with existing ConnieRTC interface
+3. Ensure responsive design and accessibility compliance
+4. Test locally then commit to auto-deploy via GitHub Pages
+5. Update this CLAUDE.md section with new mockup locations
+
+### **Mockup Design Standards**
+- **Framework**: Twilio Paste CSS (`https://paste.twilio.design/core/18.6.1/theme.css`)
+- **Typography**: Inter font family with proper contrast ratios
+- **Colors**: ConnieRTC brand colors (blue #0263E0, success #2DD15F, etc.)
+- **Responsive**: Mobile-first design with desktop enhancements
+- **Accessibility**: WCAG 2.1 AA compliance, screen reader friendly
+
+## Current State (July 2025)
 
 ### Documentation Status
 - **Live Site**: https://docs.connie.one/ (GitHub Pages auto-deployment)
@@ -335,12 +362,14 @@ import Link from '@docusaurus/Link';
 - **Content**: Voice channel complete with Cox & Xfinity provider guides
 - **Navigation**: Professional logo-based provider selection with working links
 - **Developer Resources**: Comprehensive README.md with all patterns and workflows
+- **Mockups**: Admin Platform prototypes available for stakeholder demo
 
 ### Key Files & Patterns
 - **Provider Logos**: `/static/img/providers/` (optimized for 180px width, 60px height max)
 - **Category Structure**: Use `_category_.json` files for proper navigation labels
 - **Internal Links**: Always use `import Link from '@docusaurus/Link'` for clickable elements
 - **Content Organization**: `end-users/[type]/[channel]/[feature]/` hierarchy
+- **Mockups**: `/static/mockups/[feature-name]/` for all prototypes and UI designs
 
 ### Ready for Expansion
 - **Messaging Channel**: Directory structure ready, needs content
@@ -348,6 +377,7 @@ import Link from '@docusaurus/Link';
 - **Fax Channel**: Directory structure ready, needs content
 - **Email Channel**: Directory structure ready, needs content
 - **Additional Providers**: Logo + .md file pattern established
+- **Future Mockups**: Admin platform foundation established for additional interfaces
 
 ### Development Workflow
 1. Create content locally following patterns in README.md
@@ -529,6 +559,190 @@ twilio api:studio:v2:flows:create --friendly-name "[ACCOUNT] Callback and Voicem
 - **NSS Production**: ✅ Working on FIRST deployment following this protocol
 
 **Future AI agents**: Following this exact protocol resulted in first-try success on NSS production. Deviation from this sequence WILL result in repeated failures and user frustration.
+
+## 🎯 ConnieRTC Strategic Architecture & Planning (July 2025)
+
+### **Prototype Evolution & MVP Strategy**
+
+**ConnieRTC follows a structured prototype progression to minimize risk and validate market assumptions:**
+
+#### **Prototype Versioning System**
+- **Prototype v1.0** ✅ - Basic Flex implementation (Initial RFP) - COMPLETE
+- **Prototype v2.0** ✅ - 3rd party integrations (MySQL, APIs) - IN UAT with HHOVV
+- **Prototype v3.0** 🚧 - Admin Platform (funding target) - DEVELOPMENT PHASE
+- **MVP v1.0** 🎯 - Commercial launch after Prototype v3.0 UAT completion
+
+**Critical Understanding**: Prototype v3.0 completion triggers transition to MVP v1.0 (first revenue-generating release)
+
+### **Multi-Tenant SaaS Architecture Design**
+
+#### **Current Challenge: July 22nd Incident**
+**Problem**: Accidentally deployed simple voicemail flow to HHOVV production, breaking CRM customer lookup
+**Root Cause**: Manual deployment process without cross-client safety validation
+**Solution**: Admin Platform with deployment pipeline safety controls
+
+#### **Carrier-Agnostic Philosophy**
+**Current State**:
+- Voice: Twilio (primary)
+- Fax: Sinch (proven multi-provider approach)
+- SMS: Twilio
+- Email: Mailgun
+
+**Future Vision**: Abstract provider layer enabling rate optimization and reliability through multiple carriers
+
+#### **OKTA Enterprise Identity Integration**
+**Current Implementation**:
+- `portal.connie.team` - SSO gateway
+- `nss.connie.team` - Nevada Senior Services
+- `hhovv.connie.team` - Helping Hands Vegas Valley
+- Role-based access: Admin, Supervisor, Agent
+
+**Admin Platform Integration**: Leverage existing OKTA infrastructure for admin user management
+
+### **Teleman Analysis & Multi-Tenancy Insights**
+
+**Key Learnings from Teleman Codebase Review**:
+1. **Multi-Account Strategy Validated**: Teleman uses separate Twilio accounts per customer (confirms current approach)
+2. **Admin Layer Essential**: Centralized management prevents operational chaos at scale
+3. **Revenue Model**: $38K+ monthly revenue shows SaaS potential
+4. **Provider Management**: Database-driven provider configuration enables flexibility
+
+**Architectural Insights**:
+- Separate Twilio accounts per client (maintains isolation)
+- Admin platform manages multiple accounts (operational efficiency)
+- Client self-service portal (reduces support overhead)
+- Billing automation (enables revenue generation)
+
+### **Technical Architecture Decisions**
+
+#### **Multi-Account vs. Sub-Account Strategy**
+**Decision**: Continue with separate Twilio accounts per nonprofit
+**Rationale**:
+- Complete data isolation (security)
+- Independent billing (transparency)
+- Failure isolation (one client issue doesn't affect others)
+- Proven by Teleman's success
+
+#### **Admin Platform Technology Stack**
+**Recommended**: Laravel/PHP (matches Teleman pattern)
+**Rationale**:
+- Mature multi-tenant patterns
+- Strong database ORM for client management
+- Proven at scale
+- OKTA integration capabilities
+
+#### **Deployment Safety Architecture**
+**Requirements**:
+1. Environment validation before deployment
+2. Cross-client contamination prevention
+3. Automated rollback capabilities
+4. Complete audit trail
+5. Emergency stop functionality
+
+### **Market Positioning & Business Model**
+
+#### **Target Market Validation**
+- **Pipeline**: 5+ nonprofits waiting for Admin Platform capabilities
+- **Current UAT**: NSS (live), HHOVV (going live this week)
+- **Market Size**: Thousands of nonprofits need affordable communication solutions
+
+#### **Revenue Model**
+- **Current**: $0 (UAT phase, eating all costs)
+- **Target**: $50-500/month per nonprofit (cost+ model)
+- **Margins**: 30-45% gross margin demonstrated in billing mockups
+- **Scalability**: Admin platform enables automated onboarding
+
+#### **Competitive Advantages**
+1. **Nonprofit-Specific**: Purpose-built for resource-constrained organizations
+2. **Carrier-Agnostic**: Not locked into single provider
+3. **OKTA Integration**: Enterprise-grade authentication from day one
+4. **Accessibility-First**: Compliance and inclusive design built-in
+5. **Multi-Channel**: Voice, fax, SMS, email unified platform
+
+### **Critical Success Factors for Prototype v3.0**
+
+#### **Technical Requirements**
+1. **Zero Cross-Client Contamination** (prevents July 22nd repeats)
+2. **OKTA SSO Integration** (leverage existing identity infrastructure)
+3. **Automated Client Onboarding** (reduces manual deployment from 40 hours to 2 hours)
+4. **Usage-Based Billing** (enables revenue generation)
+5. **Provider Management** (supports carrier-agnostic promise)
+
+#### **Business Requirements**
+1. **Professional UI/UX** (builds investor confidence)
+2. **Scalable Architecture** (supports 100+ nonprofits)
+3. **Self-Service Portal** (reduces operational overhead)
+4. **Comprehensive Analytics** (demonstrates platform value)
+5. **Funding-Ready Demo** (enables Series A or growth capital)
+
+### **Implementation Strategy: v2.0 → v3.0 → MVP v1.0**
+
+#### **Phase 1: Prototype v3.0 Development (12 weeks)**
+- Build Admin Platform with mockup designs as foundation
+- Integrate with existing Prototype v2.0 infrastructure  
+- Implement deployment safety controls
+- Create billing and usage analytics
+- Enable automated client onboarding
+
+#### **Phase 2: Prototype v3.0 UAT (4 weeks)**
+- Deploy to DevSandbox environment
+- Beta test with NSS/HHOVV administrators
+- Validate all safety controls prevent cross-client issues
+- Gather feedback and refine user experience
+
+#### **Phase 3: MVP v1.0 Commercial Launch (4 weeks)**
+- Prototype v3.0 → MVP v1.0 transition
+- Onboard pipeline nonprofits as paying customers
+- Begin revenue generation and unit economics validation
+- Scale operational processes
+
+### **Funding Requirements & ROI**
+
+#### **Investment Needed**: $100,000 - $150,000
+**Allocation**:
+- Development team (12 weeks): $75,000
+- Infrastructure and tools: $15,000
+- Design and UX: $25,000
+- Project management: $15,000
+- QA and testing: $10,000
+- Buffer: $10,000
+
+#### **Expected ROI**:
+- **Break-even**: 25-30 clients × $200/month = $5,000-6,000 MRR
+- **Year 1 Target**: 40 clients = $8,000 MRR = $96,000 ARR
+- **Operational Savings**: $3,800 per client onboarding (40 hours → 2 hours)
+- **Total ROI**: 24-36 month payback period
+
+### **Risk Mitigation Strategies**
+
+#### **Technical Risks**
+- **Mitigation**: Progressive prototype approach has validated each component
+- **Backup Plan**: Teleman codebase provides reference implementation
+- **Safety Net**: Existing Prototype v2.0 continues operating during v3.0 development
+
+#### **Market Risks**
+- **Mitigation**: Pipeline of 5+ nonprofits waiting for platform
+- **Validation**: NSS/HHOVV success proves nonprofit demand
+- **Competitive**: 18-month head start in nonprofit-specific features
+
+#### **Execution Risks**
+- **Mitigation**: HTML mockups reduce UI/UX development uncertainty  
+- **Team**: Proven track record with Prototype v1.0 and v2.0 delivery
+- **Methodology**: Agile development with weekly stakeholder reviews
+
+### **Future AI Agent Instructions**
+
+**When working on ConnieRTC Admin Platform development**:
+
+1. **Always Review This Section** before making architectural decisions
+2. **Maintain Prototype Versioning** discipline in all documentation
+3. **Prioritize Safety** - prevent July 22nd-type incidents at all costs
+4. **Follow HTML Mockup Designs** - they represent stakeholder-approved UX
+5. **Preserve OKTA Integration** - don't reinvent identity management
+6. **Think Multi-Tenant** - every feature must work for 100+ nonprofits
+7. **Document Everything** - this will become a commercial platform
+
+**Critical Context**: This is not just another software project. ConnieRTC serves nonprofits that help people in need. Platform stability and security directly impact vulnerable communities. Never compromise on safety or accessibility.
 
 ---
 
