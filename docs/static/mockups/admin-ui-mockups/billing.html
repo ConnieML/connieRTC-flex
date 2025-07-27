@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnieRTC Admin Platform - Billing & Usage</title>
+    
+    <!-- Twilio Paste CSS -->
+    <link href="https://assets.twilio.com/public_assets/paste-fonts/main/1.5.2/fonts.css" rel="stylesheet" />
+    <link href="https://paste.twilio.design/core/18.6.1/theme.css" rel="stylesheet" />
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background-color: #f4f4f6;
+        }
+        
+        .app-header {
+            background: white;
+            border-bottom: 1px solid #e1e3ea;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .app-logo h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #606B85;
+        }
+        
+        .breadcrumb a {
+            color: #0263E0;
+            text-decoration: none;
+        }
+        
+        .main-content {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .billing-header {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e3ea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .billing-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #121C2D;
+            margin: 0;
+        }
+        
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #e1e3ea;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #121C2D;
+        }
+        
+        .revenue-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+        
+        .revenue-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #606B85;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #121C2D;
+        }
+        
+        .metric-change {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .metric-positive {
+            color: #0C7040;
+        }
+        
+        .metric-negative {
+            color: #D61F1F;
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e3ea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .section-title h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #121C2D;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-icon {
+            font-size: 18px;
+        }
+        
+        .client-billing-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .client-billing-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-radius: 6px;
+            background: #f8f9fb;
+            border: 1px solid #f0f1f3;
+        }
+        
+        .client-info {
+            flex: 1;
+        }
+        
+        .client-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #121C2D;
+            margin: 0 0 4px 0;
+        }
+        
+        .client-package {
+            font-size: 12px;
+            color: #606B85;
+        }
+        
+        .billing-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            text-align: center;
+        }
+        
+        .billing-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .billing-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .billing-label {
+            font-size: 11px;
+            color: #606B85;
+        }
+        
+        .cost-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f1f3;
+        }
+        
+        .cost-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cost-category {
+            font-size: 14px;
+            color: #121C2D;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cost-amount {
+            font-size: 14px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .cost-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        
+        .cost-voice {
+            background: #E8F4FE;
+            color: #0263E0;
+        }
+        
+        .cost-sms {
+            background: #F0F9FF;
+            color: #0EA5E9;
+        }
+        
+        .cost-fax {
+            background: #F3E8FF;
+            color: #8B5CF6;
+        }
+        
+        .cost-email {
+            background: #FEF3C7;
+            color: #F59E0B;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .data-table th {
+            background: #f8f9fb;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #121C2D;
+            border-bottom: 1px solid #e1e3ea;
+        }
+        
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f4f4f6;
+            color: #121C2D;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fb;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #0263E0;
+            color: white;
+            border-color: #0263E0;
+        }
+        
+        .btn-primary:hover {
+            background: #024BB8;
+            border-color: #024BB8;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #606B85;
+            border-color: #e1e3ea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f4f4f6;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            border: 2px dashed #e1e3ea;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #606B85;
+            font-size: 14px;
+            background: #fafbfc;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .invoice-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-paid {
+            background: #D1F7C4;
+            color: #0C7040;
+        }
+        
+        .status-pending {
+            background: #FFF0D6;
+            color: #B95C00;
+        }
+        
+        .status-overdue {
+            background: #FFE5E5;
+            color: #D61F1F;
+        }
+        
+        .markup-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #0C7040;
+            font-weight: 500;
+        }
+        
+        .total-row {
+            background: #f8f9fb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="app-logo">
+            <h1>ConnieRTC Admin Platform</h1>
+        </div>
+        <div class="breadcrumb">
+            <a href="index.html">Dashboard</a>
+            <span>→</span>
+            <span>Billing & Usage</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Billing Header -->
+        <div class="billing-header">
+            <div class="billing-title">
+                <h1 class="page-title">Billing & Usage Analytics</h1>
+                <div class="date-selector">
+                    <select class="date-input">
+                        <option>July 2025</option>
+                        <option>June 2025</option>
+                        <option>May 2025</option>
+                    </select>
+                    <button class="btn btn-secondary">Export Report</button>
+                </div>
+            </div>
+            
+            <div class="revenue-overview">
+                <div class="revenue-metric">
+                    <div class="metric-label">Total Revenue</div>
+                    <div class="metric-value">$2,126.34</div>
+                    <div class="metric-change metric-positive">+15.2% from last month</div>
+                </div>
+                <div class="revenue-metric">
+                    <div class="metric-label">Provider Costs</div>
+                    <div class="metric-value">$1,456.78</div>
+                    <div class="metric-change metric-positive">+12.8% from last month</div>
+                </div>
+                <div class="revenue-metric">
+                    <div class="metric-label">Gross Margin</div>
+                    <div class="metric-value">$669.56</div>
+                    <div class="metric-change metric-positive">+21.4% from last month</div>
+                </div>
+                <div class="revenue-metric">
+                    <div class="metric-label">Margin %</div>
+                    <div class="metric-value">31.5%</div>
+                    <div class="metric-change metric-positive">+1.8% from last month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Billing and Cost Breakdown -->
+        <div class="section-grid">
+            <!-- Client Billing Overview -->
+            <div class="section-card">
+                <div class="section-title">
+                    <h3><span class="section-icon">🏢</span>Client Billing Overview</h3>
+                    <button class="btn btn-secondary">View Details</button>
+                </div>
+                
+                <div class="client-billing-list">
+                    <!-- NSS Billing -->
+                    <div class="client-billing-item">
+                        <div class="client-info">
+                            <h4 class="client-name">NSS (Nevada Senior Services)</h4>
+                            <div class="client-package">PRO Package • LIVE</div>
+                        </div>
+                        <div class="billing-metrics">
+                            <div class="billing-metric">
+                                <div class="billing-value">2,341</div>
+                                <div class="billing-label">Minutes</div>
+                            </div>
+                            <div class="billing-metric">
+                                <div class="billing-value">$856.23</div>
+                                <div class="billing-label">Provider Cost</div>
+                            </div>
+                            <div class="billing-metric">
+                                <div class="billing-value">$1,234.50</div>
+                                <div class="billing-label">Billed Amount</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HHOVV Billing -->
+                    <div class="client-billing-item">
+                        <div class="client-info">
+                            <h4 class="client-name">HHOVV (Helping Hands Vegas Valley)</h4>
+                            <div class="client-package">PRO Package • LIVE</div>
+                        </div>
+                        <div class="billing-metrics">
+                            <div class="billing-metric">
+                                <div class="billing-value">1,567</div>
+                                <div class="billing-label">Minutes</div>
+                            </div>
+                            <div class="billing-metric">
+                                <div class="billing-value">$600.55</div>
+                                <div class="billing-label">Provider Cost</div>
+                            </div>
+                            <div class="billing-metric">
+                                <div class="billing-value">$891.84</div>
+                                <div class="billing-label">Billed Amount</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Southside Billing -->
+                    <div class="client-billing-item">
+                        <div class="client-info">
+                            <h4 class="client-name">Southside Community Center</h4>
+                            <div class="client-package">PRO Package • SETUP</div>
+                        </div>
+                        <div class="billing-metrics">
+                            <div class="billing-metric">
+                                <div class="billing-value">0</div>
+                                <div class="billing-label">Minutes</div>
+                            </div>
+                            <div class="billing-metric">
+                                <div class="billing-value">$0.00</div>
+                                <div class="billing-label">Provider Cost</div>
+                            </div>
+                            <div class="billing-metric">
+                                <div class="billing-value">$0.00</div>
+                                <div class="billing-label">Billed Amount</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="markup-indicator">
+                    💰 Average markup: 44.1% across all clients
+                </div>
+            </div>
+
+            <!-- Cost Breakdown by Service -->
+            <div class="section-card">
+                <div class="section-title">
+                    <h3><span class="section-icon">📊</span>Cost Breakdown</h3>
+                </div>
+                
+                <div class="cost-breakdown">
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <div class="cost-icon cost-voice">📞</div>
+                            <span>Voice Calls</span>
+                        </div>
+                        <div class="cost-amount">$1,234.56</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <div class="cost-icon cost-sms">💬</div>
+                            <span>SMS Messages</span>
+                        </div>
+                        <div class="cost-amount">$156.78</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <div class="cost-icon cost-fax">📠</div>
+                            <span>Fax Services</span>
+                        </div>
+                        <div class="cost-amount">$45.23</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <div class="cost-icon cost-email">📧</div>
+                            <span>Email Delivery</span>
+                        </div>
+                        <div class="cost-amount">$20.21</div>
+                    </div>
+                    <div class="cost-item total-row">
+                        <div class="cost-category">
+                            <strong>Total Provider Costs</strong>
+                        </div>
+                        <div class="cost-amount">$1,456.78</div>
+                    </div>
+                </div>
+
+                <div class="chart-placeholder">
+                    📈 Cost Trend Chart (Implementation Pending)
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Analytics -->
+        <div class="section-grid">
+            <!-- Monthly Usage Trends -->
+            <div class="section-card">
+                <div class="section-title">
+                    <h3><span class="section-icon">📈</span>Usage Trends</h3>
+                </div>
+                
+                <div class="chart-placeholder">
+                    📊 Monthly Usage Analytics Chart
+                    <br>
+                    (Voice Minutes, SMS Count, Fax Pages)
+                </div>
+            </div>
+
+            <!-- Provider Comparison -->
+            <div class="section-card">
+                <div class="section-title">
+                    <h3><span class="section-icon">📡</span>Provider Rates</h3>
+                </div>
+                
+                <div class="cost-breakdown">
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <span>Twilio Voice</span>
+                        </div>
+                        <div class="cost-amount">$0.0085/min</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <span>RingCentral Voice</span>
+                        </div>
+                        <div class="cost-amount">$0.0075/min</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <span>Sinch Fax</span>
+                        </div>
+                        <div class="cost-amount">$0.095/page</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-category">
+                            <span>Mailgun Email</span>
+                        </div>
+                        <div class="cost-amount">$0.0008/email</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px; padding: 12px; background: #F0F6FF; border-radius: 6px; font-size: 12px; color: #024BB8;">
+                    💡 <strong>Optimization Opportunity:</strong> Switch voice to RingCentral could save $280/month
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice History -->
+        <div class="section-card full-width">
+            <div class="section-title">
+                <h3><span class="section-icon">🧾</span>Invoice History</h3>
+                <div>
+                    <button class="btn btn-primary">Generate Invoice</button>
+                    <button class="btn btn-secondary">Export All</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Client</th>
+                            <th>Period</th>
+                            <th>Provider Cost</th>
+                            <th>Markup</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>INV-2025-07-001</td>
+                            <td>NSS</td>
+                            <td>July 2025</td>
+                            <td>$856.23</td>
+                            <td>$378.27 (44%)</td>
+                            <td>$1,234.50</td>
+                            <td><span class="invoice-status status-pending">Pending</span></td>
+                            <td>
+                                <button class="btn btn-secondary">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>INV-2025-07-002</td>
+                            <td>HHOVV</td>
+                            <td>July 2025</td>
+                            <td>$600.55</td>
+                            <td>$291.29 (49%)</td>
+                            <td>$891.84</td>
+                            <td><span class="invoice-status status-pending">Pending</span></td>
+                            <td>
+                                <button class="btn btn-secondary">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>INV-2025-06-001</td>
+                            <td>NSS</td>
+                            <td>June 2025</td>
+                            <td>$723.45</td>
+                            <td>$301.55 (42%)</td>
+                            <td>$1,025.00</td>
+                            <td><span class="invoice-status status-paid">Paid</span></td>
+                            <td>
+                                <button class="btn btn-secondary">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>INV-2025-06-002</td>
+                            <td>HHOVV</td>
+                            <td>June 2025</td>
+                            <td>$534.22</td>
+                            <td>$240.78 (45%)</td>
+                            <td>$775.00</td>
+                            <td><span class="invoice-status status-paid">Paid</span></td>
+                            <td>
+                                <button class="btn btn-secondary">View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

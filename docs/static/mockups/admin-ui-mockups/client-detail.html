@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnieRTC Admin Platform - Client Details</title>
+    
+    <!-- Twilio Paste CSS -->
+    <link href="https://assets.twilio.com/public_assets/paste-fonts/main/1.5.2/fonts.css" rel="stylesheet" />
+    <link href="https://paste.twilio.design/core/18.6.1/theme.css" rel="stylesheet" />
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background-color: #f4f4f6;
+        }
+        
+        .app-header {
+            background: white;
+            border-bottom: 1px solid #e1e3ea;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .app-logo h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #606B85;
+        }
+        
+        .breadcrumb a {
+            color: #0263E0;
+            text-decoration: none;
+        }
+        
+        .main-content {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .client-header {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e3ea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .client-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .client-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #121C2D;
+            margin: 0;
+        }
+        
+        .client-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-live {
+            background: #D1F7C4;
+            color: #0C7040;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2DD15F;
+        }
+        
+        .client-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+        
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .meta-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #606B85;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .meta-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: #121C2D;
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e3ea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .section-title h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .section-icon {
+            font-size: 18px;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f8f9fb;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #121C2D;
+            margin: 0 0 4px 0;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #606B85;
+            font-weight: 500;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f4f4f6;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-name {
+            font-size: 14px;
+            color: #121C2D;
+        }
+        
+        .feature-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .feature-enabled {
+            background: #D1F7C4;
+            color: #0C7040;
+        }
+        
+        .feature-disabled {
+            background: #F4F4F6;
+            color: #606B85;
+        }
+        
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f8f9fb;
+        }
+        
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #0263E0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #121C2D;
+            margin: 0 0 4px 0;
+        }
+        
+        .activity-meta {
+            font-size: 12px;
+            color: #606B85;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .data-table th {
+            background: #f8f9fb;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #121C2D;
+            border-bottom: 1px solid #e1e3ea;
+        }
+        
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f4f4f6;
+            color: #121C2D;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fb;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #0263E0;
+            color: white;
+            border-color: #0263E0;
+        }
+        
+        .btn-primary:hover {
+            background: #024BB8;
+            border-color: #024BB8;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #606B85;
+            border-color: #e1e3ea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f4f4f6;
+        }
+        
+        .btn-danger {
+            background: white;
+            color: #D61F1F;
+            border-color: #e1e3ea;
+        }
+        
+        .btn-danger:hover {
+            background: #FFF5F5;
+            border-color: #D61F1F;
+        }
+        
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="app-logo">
+            <h1>ConnieRTC Admin Platform</h1>
+        </div>
+        <div class="breadcrumb">
+            <a href="index.html">Dashboard</a>
+            <span>→</span>
+            <span>HHOVV Details</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Client Header -->
+        <div class="client-header">
+            <div class="client-title">
+                <h1 class="client-name">HHOVV (Helping Hands of Vegas Valley)</h1>
+                <div class="client-status status-live">
+                    <span class="status-indicator"></span>
+                    <span>LIVE PRODUCTION</span>
+                </div>
+            </div>
+            
+            <div class="client-meta">
+                <div class="meta-item">
+                    <div class="meta-label">Subdomain</div>
+                    <div class="meta-value">hhovv.connie.team</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Primary Contact</div>
+                    <div class="meta-value">sarah@hhovv.org</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Phone Number</div>
+                    <div class="meta-value">+1 (702) 747-6595</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Package</div>
+                    <div class="meta-value">PRO ($200/month)</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Go-Live Date</div>
+                    <div class="meta-value">June 15, 2025</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Last Activity</div>
+                    <div class="meta-value">2 minutes ago</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overview Metrics -->
+        <div class="section-grid">
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">📊</span>
+                    <h3>Usage Metrics (This Month)</h3>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">1,567</div>
+                        <div class="metric-label">Total Calls</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">3.2 min</div>
+                        <div class="metric-label">Avg Duration</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">94%</div>
+                        <div class="metric-label">Answer Rate</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">$892.34</div>
+                        <div class="metric-label">Total Cost</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">⚙️</span>
+                    <h3>Feature Configuration</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-name">Voice Calls</span>
+                        <span class="feature-status feature-enabled">Enabled</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">Voicemail</span>
+                        <span class="feature-status feature-enabled">Enabled</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">Email Notifications</span>
+                        <span class="feature-status feature-disabled">Disabled</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">CRM API Integration</span>
+                        <span class="feature-status feature-enabled">Enabled</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">Call Recording</span>
+                        <span class="feature-status feature-enabled">Enabled</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">Fax Integration</span>
+                        <span class="feature-status feature-disabled">Disabled</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Activity & Technical Info -->
+        <div class="section-grid">
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">🔔</span>
+                    <h3>Recent Activity</h3>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">📞</div>
+                        <div class="activity-content">
+                            <div class="activity-title">CRM profile lookup successful</div>
+                            <div class="activity-meta">2 minutes ago • Phone: +1 (510) 930-9015</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">⚠️</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Studio Flow corrected</div>
+                            <div class="activity-meta">July 22, 2025 • Fixed customer lookup issue</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">✅</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Health check passed</div>
+                            <div class="activity-meta">1 hour ago • All systems operational</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">📋</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Monthly usage report generated</div>
+                            <div class="activity-meta">July 1, 2025 • Email sent to sarah@hhovv.org</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">🔧</span>
+                    <h3>Technical Configuration</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-name">Twilio Account SID</span>
+                        <span class="feature-status feature-enabled">AC595d...5d63f</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">Studio Flow</span>
+                        <span class="feature-status feature-enabled">FWee2eec...35eab</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">CRM API Endpoint</span>
+                        <span class="feature-status feature-enabled">jshhnlv.org/app/api</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">Serverless Domain</span>
+                        <span class="feature-status feature-enabled">custom-flex...1866.twil.io</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-name">OKTA Group</span>
+                        <span class="feature-status feature-enabled">HHOVV-Connie-Users</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Call History Table -->
+        <div class="section-card full-width">
+            <div class="action-bar">
+                <div class="section-title">
+                    <span class="section-icon">📞</span>
+                    <h3>Recent Call History</h3>
+                </div>
+                <div class="action-buttons">
+                    <a href="https://hhovv.connie.team" class="btn btn-primary">Login as Client →</a>
+                    <a href="#" class="btn btn-secondary">Export Data</a>
+                    <a href="#" class="btn btn-secondary">Configure</a>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Duration</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>10:23 AM</td>
+                            <td>+1 (510) 930-9015</td>
+                            <td>+1 (702) 747-6595</td>
+                            <td>4:32</td>
+                            <td>Inbound</td>
+                            <td>Completed</td>
+                            <td>$0.85</td>
+                        </tr>
+                        <tr>
+                            <td>09:45 AM</td>
+                            <td>+1 (555) 123-4567</td>
+                            <td>+1 (702) 747-6595</td>
+                            <td>2:15</td>
+                            <td>Inbound</td>
+                            <td>Completed</td>
+                            <td>$0.42</td>
+                        </tr>
+                        <tr>
+                            <td>09:12 AM</td>
+                            <td>+1 (702) 555-8888</td>
+                            <td>+1 (702) 747-6595</td>
+                            <td>0:30</td>
+                            <td>Inbound</td>
+                            <td>Voicemail</td>
+                            <td>$0.12</td>
+                        </tr>
+                        <tr>
+                            <td>08:55 AM</td>
+                            <td>+1 (310) 555-9999</td>
+                            <td>+1 (702) 747-6595</td>
+                            <td>6:45</td>
+                            <td>Inbound</td>
+                            <td>Completed</td>
+                            <td>$1.23</td>
+                        </tr>
+                        <tr>
+                            <td>08:30 AM</td>
+                            <td>+1 (702) 747-6595</td>
+                            <td>+1 (702) 555-1234</td>
+                            <td>3:20</td>
+                            <td>Outbound</td>
+                            <td>Completed</td>
+                            <td>$0.67</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

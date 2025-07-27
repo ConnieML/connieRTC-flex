@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnieRTC Admin Platform - Deployment Pipeline</title>
+    
+    <!-- Twilio Paste CSS -->
+    <link href="https://assets.twilio.com/public_assets/paste-fonts/main/1.5.2/fonts.css" rel="stylesheet" />
+    <link href="https://paste.twilio.design/core/18.6.1/theme.css" rel="stylesheet" />
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background-color: #f4f4f6;
+        }
+        
+        .app-header {
+            background: white;
+            border-bottom: 1px solid #e1e3ea;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .app-logo h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #606B85;
+        }
+        
+        .breadcrumb a {
+            color: #0263E0;
+            text-decoration: none;
+        }
+        
+        .main-content {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .deployment-header {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e3ea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .deployment-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #121C2D;
+            margin: 0;
+        }
+        
+        .safety-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            background: #D1F7C4;
+            color: #0C7040;
+        }
+        
+        .safety-icon {
+            font-size: 16px;
+        }
+        
+        .deployment-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 24px;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #606B85;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e3ea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .section-title h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .section-icon {
+            font-size: 18px;
+        }
+        
+        .pipeline-stage {
+            border: 1px solid #e1e3ea;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .pipeline-stage.active {
+            border-color: #0263E0;
+            background: #F0F6FF;
+        }
+        
+        .pipeline-stage.success {
+            border-color: #2DD15F;
+            background: #F5FBF5;
+        }
+        
+        .pipeline-stage.warning {
+            border-color: #F79A3E;
+            background: #FFF8F0;
+        }
+        
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .stage-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #121C2D;
+        }
+        
+        .stage-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-running {
+            background: #E8F4FE;
+            color: #0263E0;
+        }
+        
+        .status-success {
+            background: #D1F7C4;
+            color: #0C7040;
+        }
+        
+        .status-pending {
+            background: #F4F4F6;
+            color: #606B85;
+        }
+        
+        .status-warning {
+            background: #FFF0D6;
+            color: #B95C00;
+        }
+        
+        .stage-description {
+            font-size: 13px;
+            color: #606B85;
+            margin-bottom: 12px;
+        }
+        
+        .stage-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            font-size: 12px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-label {
+            color: #606B85;
+        }
+        
+        .detail-value {
+            color: #121C2D;
+            font-weight: 500;
+        }
+        
+        .client-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .client-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f8f9fb;
+        }
+        
+        .client-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #121C2D;
+        }
+        
+        .client-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .deployment-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #0263E0;
+            color: white;
+            border-color: #0263E0;
+        }
+        
+        .btn-primary:hover {
+            background: #024BB8;
+            border-color: #024BB8;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #606B85;
+            border-color: #e1e3ea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f4f4f6;
+        }
+        
+        .btn-danger {
+            background: white;
+            color: #D61F1F;
+            border-color: #e1e3ea;
+        }
+        
+        .btn-danger:hover {
+            background: #FFF5F5;
+            border-color: #D61F1F;
+        }
+        
+        .alert {
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+        }
+        
+        .alert-warning {
+            background: #FFF8F0;
+            border-color: #F79A3E;
+            color: #8B4513;
+        }
+        
+        .alert-info {
+            background: #F0F6FF;
+            border-color: #0263E0;
+            color: #024BB8;
+        }
+        
+        .deployment-log {
+            background: #121C2D;
+            color: #f4f4f6;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-line {
+            margin-bottom: 4px;
+        }
+        
+        .log-timestamp {
+            color: #606B85;
+        }
+        
+        .log-level-info {
+            color: #54A9FF;
+        }
+        
+        .log-level-success {
+            color: #2DD15F;
+        }
+        
+        .log-level-warning {
+            color: #F79A3E;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="app-logo">
+            <h1>ConnieRTC Admin Platform</h1>
+        </div>
+        <div class="breadcrumb">
+            <a href="index.html">Dashboard</a>
+            <span>→</span>
+            <span>Deployment Pipeline</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Deployment Header -->
+        <div class="deployment-header">
+            <div class="deployment-title">
+                <h1 class="page-title">Feature Deployment Pipeline</h1>
+                <div class="safety-indicator">
+                    <span class="safety-icon">🛡️</span>
+                    <span>Cross-Client Safety Enabled</span>
+                </div>
+            </div>
+            
+            <div class="deployment-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Active Deployments</div>
+                    <div class="stat-value">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">98.5%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Last Incident</div>
+                    <div class="stat-value">July 22</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Auto Rollbacks</div>
+                    <div class="stat-value">3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safety Alert -->
+        <div class="alert alert-warning">
+            <strong>⚠️ Learn from July 22nd:</strong> Always verify target environment before deployment. Cross-client contamination prevention is now enforced.
+        </div>
+
+        <!-- Pipeline and Status -->
+        <div class="section-grid">
+            <!-- Current Deployment Pipeline -->
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">🚀</span>
+                    <h3>Current Deployment: Email Voicemail Feature</h3>
+                </div>
+                
+                <div class="pipeline-stage success">
+                    <div class="stage-header">
+                        <div class="stage-name">1. Environment Validation</div>
+                        <div class="stage-status status-success">Complete</div>
+                    </div>
+                    <div class="stage-description">Verify target environment and prevent cross-client deployments</div>
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Target:</span>
+                            <span class="detail-value">SOUTHSIDE (new client)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span>
+                            <span class="detail-value">00:00:12</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Safety Check:</span>
+                            <span class="detail-value">✅ PASSED</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Branch:</span>
+                            <span class="detail-value">feature/email-voicemail</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage success">
+                    <div class="stage-header">
+                        <div class="stage-name">2. Serverless Functions</div>
+                        <div class="stage-status status-success">Complete</div>
+                    </div>
+                    <div class="stage-description">Deploy callback-and-voicemail-with-email functions</div>
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Functions:</span>
+                            <span class="detail-value">3 deployed</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span>
+                            <span class="detail-value">00:02:45</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Domain:</span>
+                            <span class="detail-value">southside-flex-XXXX.twil.io</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Health Check:</span>
+                            <span class="detail-value">✅ PASSED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage active">
+                    <div class="stage-header">
+                        <div class="stage-name">3. Studio Flow Creation</div>
+                        <div class="stage-status status-running">Running</div>
+                    </div>
+                    <div class="stage-description">Create and configure Studio Flow with correct workflow SID</div>
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Progress:</span>
+                            <span class="detail-value">75% complete</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span>
+                            <span class="detail-value">00:01:23</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Workflow SID:</span>
+                            <span class="detail-value">WW...southside</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Template:</span>
+                            <span class="detail-value">email-voicemail-v2.json</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <div class="stage-name">4. Phone Number Configuration</div>
+                        <div class="stage-status status-pending">Pending</div>
+                    </div>
+                    <div class="stage-description">Connect phone number to new Studio Flow</div>
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Phone:</span>
+                            <span class="detail-value">+1-555-SOUTH</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Current Flow:</span>
+                            <span class="detail-value">None</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <div class="stage-name">5. Integration Testing</div>
+                        <div class="stage-status status-pending">Pending</div>
+                    </div>
+                    <div class="stage-description">End-to-end testing with email delivery verification</div>
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Tests:</span>
+                            <span class="detail-value">5 automated</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email Service:</span>
+                            <span class="detail-value">Mailgun</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environment Status -->
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">🏢</span>
+                    <h3>Environment Status</h3>
+                </div>
+                
+                <div class="client-list">
+                    <div class="client-item">
+                        <div class="client-name">NSS Production</div>
+                        <div class="client-status status-success">Stable</div>
+                    </div>
+                    <div class="client-item">
+                        <div class="client-name">HHOVV Production</div>
+                        <div class="client-status status-success">Stable</div>
+                    </div>
+                    <div class="client-item">
+                        <div class="client-name">DevSandbox</div>
+                        <div class="client-status status-success">Available</div>
+                    </div>
+                    <div class="client-item">
+                        <div class="client-name">Southside (New)</div>
+                        <div class="client-status status-warning">Deploying</div>
+                    </div>
+                </div>
+
+                <div class="deployment-actions">
+                    <button class="btn btn-danger">🛑 Emergency Stop</button>
+                    <button class="btn btn-secondary">↩️ Rollback</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deployment History and Logs -->
+        <div class="section-grid">
+            <!-- Recent Deployments -->
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">📜</span>
+                    <h3>Recent Deployments</h3>
+                </div>
+                
+                <div class="client-list">
+                    <div class="client-item">
+                        <div>
+                            <div class="client-name">Email Voicemail → SOUTHSIDE</div>
+                            <div style="font-size: 12px; color: #606B85;">3 minutes ago</div>
+                        </div>
+                        <div class="client-status status-running">In Progress</div>
+                    </div>
+                    <div class="client-item">
+                        <div>
+                            <div class="client-name">Studio Flow Fix → HHOVV</div>
+                            <div style="font-size: 12px; color: #606B85;">July 22, 2025</div>
+                        </div>
+                        <div class="client-status status-success">Success</div>
+                    </div>
+                    <div class="client-item">
+                        <div>
+                            <div class="client-name">Core Template → NSS</div>
+                            <div style="font-size: 12px; color: #606B85;">July 15, 2025</div>
+                        </div>
+                        <div class="client-status status-success">Success</div>
+                    </div>
+                    <div class="client-item">
+                        <div>
+                            <div class="client-name">Voicemail Features → DevSandbox</div>
+                            <div style="font-size: 12px; color: #606B85;">July 10, 2025</div>
+                        </div>
+                        <div class="client-status status-success">Success</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section-card">
+                <div class="section-title">
+                    <span class="section-icon">⚡</span>
+                    <h3>Quick Actions</h3>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn btn-primary">🚀 New Deployment</button>
+                    <button class="btn btn-secondary">📋 View All Environments</button>
+                    <button class="btn btn-secondary">🔧 Deployment Settings</button>
+                    <button class="btn btn-secondary">📊 Deployment Analytics</button>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 16px;">
+                    <strong>💡 Pro Tip:</strong> Use feature flags to deploy safely without affecting existing clients.
+                </div>
+            </div>
+        </div>
+
+        <!-- Deployment Log -->
+        <div class="section-card full-width">
+            <div class="section-title">
+                <span class="section-icon">📋</span>
+                <h3>Live Deployment Log</h3>
+            </div>
+            
+            <div class="deployment-log">
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:45]</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Starting Studio Flow creation for SOUTHSIDE environment
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:46]</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Loading template: callback-voicemail-email-flow.json
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:47]</span> 
+                    <span class="log-level-success">[SUCCESS]</span> 
+                    Template validation passed
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:48]</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Replacing serverless domain: southside-flex-1847.twil.io
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:49]</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Replacing workflow SID: WWsouthside123...
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:50]</span> 
+                    <span class="log-level-success">[SUCCESS]</span> 
+                    Studio Flow created: FWsouthside456...
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:51]</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Publishing Studio Flow...
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:52]</span> 
+                    <span class="log-level-success">[SUCCESS]</span> 
+                    Studio Flow published and ready for phone number configuration
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[10:23:53]</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Proceeding to phone number configuration stage...
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
