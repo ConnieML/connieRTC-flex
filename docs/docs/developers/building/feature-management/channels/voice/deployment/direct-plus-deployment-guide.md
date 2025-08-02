@@ -317,7 +317,7 @@ terraform apply -var-file="local.tfvars"
 
 **Alternative CLI Method (if Flow doesn't appear):**
 
-Use the [Studio Flow Template](/developers/building/feature-management/channels/voice/deployment/assets/studio-flow-template.json) to create flow via CLI:
+Use the Studio Flow Template (see assets folder) to create flow via CLI:
 
 ```bash
 # Download template and update with your values
