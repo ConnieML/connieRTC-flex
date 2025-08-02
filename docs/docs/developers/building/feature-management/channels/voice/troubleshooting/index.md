@@ -362,7 +362,7 @@ exports.healthCheck = async (context, event, callback) => {
 ## Getting Help
 
 ### Internal Resources
-1. Check [Error Codes](./error-codes) for specific error solutions
+1. Check the Error Codes section below for specific error solutions
 2. Review [Voice Overview](../overview.md) for architecture understanding
 3. Check specific add-on documentation for detailed troubleshooting
 

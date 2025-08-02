@@ -84,7 +84,7 @@ VIP customer → Priority queue
 
 Need assistance with your custom build?
 
-- Review our [Examples](../examples) for inspiration
+- Review existing workflow implementations for inspiration
 - Check [Common Issues](../troubleshooting) for troubleshooting
 - Contact support for complex requirements
 
