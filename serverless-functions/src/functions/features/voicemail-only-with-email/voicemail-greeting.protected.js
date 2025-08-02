@@ -17,11 +17,11 @@ const TaskRouterOperations = require(Runtime.getFunctions()['common/twilio-wrapp
 // Configuration options
 const options = {
   sayOptions: { 
-    voice: 'Polly.Joanna',
+    voice: 'Polly.Matthew-Neural',
     language: 'en-US'
   },
   messages: {
-    initialGreeting: 'Thank you for calling. Please leave a message after the tone. When you are finished, you may hang up or press the star key.',
+    initialGreeting: 'Thank you for calling Hospital to Home, a division of Nevada Senior Services. Our hours are Monday-Friday from 9am-5pm. If you are experiencing a medical emergency, please hang up and dial 911. For all other callers, please leave a message with the date, time and reason for your call. All calls will be returned within 24-48 hours. Please leave your message after the beep. When you are finished, you may hang up or press the star key.',
     voicemailNotCaptured: "Sorry, we weren't able to capture your message. Please try again.",
     voicemailRecorded: 'Your voicemail has been successfully recorded. Thank you for calling. Goodbye.',
     processingError: 'Sorry, we experienced a technical issue. Please try your call again later.',
@@ -142,28 +142,39 @@ exports.handler = async function(context, event, callback) {
 
       // Create task in Flex
       try {
-        // Look up workflow SID - prefer environment variable, fallback to default
-        const workflowSid = context.VOICEMAIL_WORKFLOW_SID || 
-                           await getDefaultWorkflowSid(context) ||
-                           'WW68ed6f6bc555f21e436810af747722a9'; // NSS default as last resort
+        // Use H2H Voicemail workflow for proper queue routing
+        const workflowSid = 'WW977b81b28177a83656c903094ed10037'; // H2H Voicemail workflow
 
         const taskAttributes = {
           call_sid: event.CallSid,
           direction: 'inbound',
           from: event.From,
           to: event.To,
-          name: `Voicemail from ${event.From}`,
+          name: `H2H Voicemail from ${event.From} → ${event.To}`,
           taskType: 'voicemail',
+          
+          // H2H Voicemail identification
+          conversations: {
+            conversation_id: event.CallSid,
+            conversation_measure_1: 'H2H Voicemail',
+            conversation_measure_2: event.To, // Phone number called
+            conversation_measure_3: event.From, // Caller number
+            conversation_measure_4: 'Hospital to Home',
+            conversation_measure_5: 'Voicemail Only'
+          },
           
           // Voicemail-specific data
           callBackData: {
             isVoicemail: true,
             voicemailOnly: true,
+            isH2HVoicemail: true,
+            department: 'Hospital to Home',
+            phoneNumber: event.To,
+            callerNumber: event.From,
             recordingUrl: event.RecordingUrl,
             recordingDuration: parseInt(event.RecordingDuration) || 0,
             recordingSid: event.RecordingSid,
             transcriptionStatus: 'pending',
-            phoneNumber: event.To,
             timestamp: new Date().toISOString(),
             attempts: 0
           }

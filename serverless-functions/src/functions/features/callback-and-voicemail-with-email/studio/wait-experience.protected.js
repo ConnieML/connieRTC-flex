@@ -115,6 +115,9 @@ exports.handler = async (context, event, callback) => {
   console.log('QueueSid:', event.QueueSid);
   console.log('=== WAIT-EXPERIENCE DEBUG END ===');
 
+  // TWILIO SUPPORT RECOMMENDATION: Define workflow SID once for consistency
+  const H2H_VOICEMAIL_WORKFLOW_SID = 'WW977b81b28177a83656c903094ed10037';
+
   const twiml = new Twilio.twiml.VoiceResponse();
   const baseUrl = `https://${context.DOMAIN_NAME}/features/callback-and-voicemail-with-email/studio/wait-experience`;
   let holdMusicUrl = options.holdMusicUrl;
@@ -127,17 +130,23 @@ exports.handler = async (context, event, callback) => {
 
   const { Digits, CallSid, QueueSid, mode, enqueuedTaskSid, skipGreeting, voicemailOnly } = event;
   
-  // NOTE: Voicemail-only functionality now uses proper Professional Services approach
-  // Voicemail-only numbers should use Studio Record widget + create-callback function
-  // This waitUrl function is only for queue-based callback/voicemail options
+  // TWILIO SUPPORT RECOMMENDATION: Normalize voicemailOnly parameter
+  const isVoicemailOnly = String(voicemailOnly).toLowerCase() === 'true';
+  
+  // VOICEMAIL-ONLY BYPASS: Skip all queue/callback logic and go straight to voicemail recording
+  if (isVoicemailOnly && (mode === 'initialize' || mode === undefined)) {
+    console.log('Voicemail-only mode: Bypassing queue operations, redirecting to voicemail recording');
+    twiml.redirect(`${baseUrl}?mode=record-voicemail&CallSid=${CallSid}&voicemailOnly=true`);
+    return callback(null, twiml);
+  }
   
   switch (mode) {
     case 'initialize':
     case undefined:
       // Initial logic to find the associated task for the call, and propagate it through to the rest of the TwiML execution
       // If the lookup fails to find the task, the remaining TwiML logic will not offer any callback or voicemail options.
-      // TEMPORARY FIX: Hardcode workflow SID to bypass buggy queue friendlyName logic
-      const enqueuedWorkflowSid = 'WW68ed6f6bc555f21e436810af747722a9'; // NSS Assign to Anyone workflow
+      // Use centralized workflow SID
+      const enqueuedWorkflowSid = 'WW977b81b28177a83656c903094ed10037'; // NSS H2H Voicemail workflow
       console.log(`Enqueued workflow sid: ${enqueuedWorkflowSid}`);
       const enqueuedTask = await getPendingTaskByCallSid(context, CallSid, enqueuedWorkflowSid);
 
@@ -358,7 +367,7 @@ exports.handler = async (context, event, callback) => {
       const voicemailOnlyParam = voicemailOnly === 'true' ? '&voicemailOnly=true' : '';
       
       // For voicemail-only mode, use Twilio Support's recommended TwiML pattern
-      if (voicemailOnly === 'true') {
+      if (isVoicemailOnly) {
         // Simplified recording for voicemail-only lines
         twiml.record({
           action: `${baseUrl}?mode=voicemail-recorded&CallSid=${CallSid}&enqueuedTaskSid=${enqueuedTaskSid}${voicemailOnlyParam}`,
@@ -393,12 +402,12 @@ exports.handler = async (context, event, callback) => {
 
     case 'voicemail-recorded':
       // For voicemail-only mode, create a Flex task and end the call
-      if (voicemailOnly === 'true') {
+      if (isVoicemailOnly) {
         console.log('Voicemail-only: Processing recorded voicemail');
         
         if (event.RecordingUrl && event.RecordingDuration > 0) {
-          // Create voicemail task using the same workflow as regular voicemails
-          const enqueuedWorkflowSid = 'WW68ed6f6bc555f21e436810af747722a9'; // NSS Assign to Anyone workflow
+          // Create voicemail task using centralized workflow SID
+          const enqueuedWorkflowSid = 'WW977b81b28177a83656c903094ed10037'; // NSS H2H Voicemail workflow
           
           try {
             const taskAttributes = {
@@ -406,6 +415,7 @@ exports.handler = async (context, event, callback) => {
               direction: 'inbound',
               from: event.From,
               name: event.From,
+              taskType: 'voicemail', // TWILIO SUPPORT RECOMMENDATION: Add for Flex filtering
               callBackData: {
                 isVoicemail: true,
                 voicemailOnly: true,

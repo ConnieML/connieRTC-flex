@@ -1,0 +1,63 @@
+{
+  "description": "Direct+ Callback and Voicemail with Email Flow - Template",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "send_to_flex_1",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -70,
+          "y": -60
+        }
+      }
+    },
+    {
+      "name": "send_to_flex_1",
+      "type": "send-to-flex",
+      "transitions": [
+        {
+          "event": "callComplete"
+        },
+        {
+          "event": "failedToEnqueue"
+        },
+        {
+          "event": "callFailure"
+        }
+      ],
+      "properties": {
+        "waitUrl": "https://YOUR-DEPLOYMENT-DOMAIN/features/callback-and-voicemail-with-email/studio/wait-experience",
+        "waitUrlMethod": "POST",
+        "workflow": "YOUR-WORKFLOW-SID",
+        "channel": "voice",
+        "attributes": "{\"call_sid\": \"{{trigger.call.CallSid}}\", \"callBackData\": {\"attempts\": 0}}",
+        "offset": {
+          "x": 170,
+          "y": 100
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
