@@ -1,0 +1,47 @@
+{
+  "custom_data": {
+    "common": {
+      "teams": [
+        "Everyone"
+      ],
+      "departments": [
+        "General Inquiry",
+        "Volunteer Services",
+        "Donor Relations",
+        "Webform Submission",
+        "Fax - Medical Referral"
+      ]
+    },
+    "features": {
+      "branding": {
+        "enabled": true,
+        "custom_logo_url": "https://res.cloudinary.com/doa8o9alh/image/upload/v1769819534/connie-logo_v1-white_xrfop2.svg",
+        "use_custom_colors": true,
+        "custom_colors": {
+          "main_header_background": "#0263E0",
+          "side_nav_background": "rgb(255, 255, 255)",
+          "side_nav_border": "rgb(202, 205, 216)",
+          "side_nav_icon": "rgb(18, 28, 45)",
+          "side_nav_selected_icon": "#0263E0",
+          "side_nav_hover_background": "rgb(225, 227, 234)"
+        }
+      },
+      "enhanced_crm_container": {
+        "enabled": true,
+        "url": "https://v1.connie.plus/channels?token={{worker.token}}&accountSid={{worker.accountSid}}&userEmail={{worker.attributes.email}}&userName={{worker.attributes.full_name}}&taskSid={{task.sid}}&channelType={{task.channelType}}&department={{task.department}}&from={{task.from}}",
+        "should_display_url_when_no_tasks": true,
+        "display_url_when_no_tasks": "https://v1.connie.plus/channels?token={{worker.token}}&accountSid={{worker.accountSid}}&userEmail={{worker.attributes.email}}&userName={{worker.attributes.full_name}}",
+        "enable_url_tab": true,
+        "url_tab_title": "Agent Tools"
+      },
+      "channel_experience": {
+        "enabled": true,
+        "email_channel": { "enabled": true, "color": "#2563EB" },
+        "fax_channel": { "enabled": true, "color": "#D97706" },
+        "webform_channel": { "enabled": true, "color": "#7C3AED" },
+        "call_templates": { "enabled": true },
+        "chat_templates": { "enabled": true }
+      }
+    }
+  }
+}

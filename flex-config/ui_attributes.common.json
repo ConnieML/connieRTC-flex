@@ -434,6 +434,14 @@
         "enabled": false,
         "exclude_attributes": [],
         "exclude_queues": []
+      },
+      "channel_experience": {
+        "enabled": true,
+        "email_channel": { "enabled": true, "color": "#2563EB" },
+        "fax_channel": { "enabled": true, "color": "#D97706" },
+        "webform_channel": { "enabled": true, "color": "#7C3AED" },
+        "call_templates": { "enabled": true },
+        "chat_templates": { "enabled": true }
       }
     }
   }
