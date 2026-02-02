@@ -34,11 +34,16 @@
         "enable_url_tab": true,
         "url_tab_title": "Agent Tools"
       },
+      "attribute_viewer": {
+        "enabled": true,
+        "enabled_for_agents": true
+      },
       "channel_experience": {
         "enabled": true,
         "email_channel": { "enabled": true, "color": "#2563EB" },
         "fax_channel": { "enabled": true, "color": "#D97706" },
         "webform_channel": { "enabled": true, "color": "#7C3AED" },
+        "messenger_channel": { "enabled": true, "color": "#0084FF" },
         "call_templates": { "enabled": true },
         "chat_templates": { "enabled": true }
       }

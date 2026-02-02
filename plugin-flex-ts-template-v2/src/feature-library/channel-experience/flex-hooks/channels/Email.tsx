@@ -25,6 +25,9 @@ export const channelHook = function createEmailChannel(flex: typeof Flex, manage
       )
         return false;
 
+      // Exclude webform tasks (Adobe Sign forms also arrive on email channel)
+      if (type === 'webform') return false;
+
       // Everything else on the email channel is an email task
       return true;
     },
@@ -50,8 +53,9 @@ export const channelHook = function createEmailChannel(flex: typeof Flex, manage
         ...templates?.TaskListItem,
         firstLine: (task: Flex.ITask) => getTaskName(task, true),
         secondLine: (task: Flex.ITask) => {
-          const from = task.attributes.from || task.attributes.customerName || '';
-          return from;
+          const attrs = task.attributes as Record<string, string>;
+          const who = attrs.customerName || attrs.from || attrs.origin || '';
+          return who ? `From: ${who}` : task.queueName || '';
         },
       },
       TaskCanvasHeader: {

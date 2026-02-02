@@ -6,6 +6,7 @@ const {
   email_channel = { enabled: true, color: '#2563EB' },
   fax_channel = { enabled: true, color: '#D97706' },
   webform_channel = { enabled: true, color: '#7C3AED' },
+  messenger_channel = { enabled: true, color: '#0084FF' },
   call_templates = { enabled: true },
   chat_templates = { enabled: true },
 } = (getFeatureFlags()?.features?.channel_experience as ChannelExperienceConfig) || {};
@@ -36,6 +37,14 @@ export const isWebformChannelEnabled = () => {
 
 export const getWebformColor = () => {
   return webform_channel.color;
+};
+
+export const isMessengerChannelEnabled = () => {
+  return enabled && messenger_channel.enabled;
+};
+
+export const getMessengerColor = () => {
+  return messenger_channel.color;
 };
 
 export const isCallTemplatesEnabled = () => {

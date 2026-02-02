@@ -12,6 +12,10 @@ export default interface ChannelExperienceConfig {
     enabled: boolean;
     color: string;
   };
+  messenger_channel: {
+    enabled: boolean;
+    color: string;
+  };
   call_templates: {
     enabled: boolean;
   };

@@ -11,20 +11,33 @@ export const channelHook = function createWebformChannel(flex: typeof Flex, mana
   const channelDefinition = flex.DefaultTaskChannels.createDefaultTaskChannel(
     'webform',
     (task) => {
-      const { department } = task.attributes as Record<string, string>;
-      return task.taskChannelUniqueName === 'chat' && department === 'Webform Submission';
+      const { department, type } = task.attributes as Record<string, string>;
+      // Match webform tasks on chat channel (Tally/native forms)
+      if (task.taskChannelUniqueName === 'chat' && department === 'Webform Submission') return true;
+      // Match webform tasks on email channel (Adobe Sign forms)
+      if (task.taskChannelUniqueName === 'email' && type === 'webform') return true;
+      return false;
     },
     'FormIcon',
     'FormIcon',
     getWebformColor(),
   );
 
-  const getTaskName = (task: Flex.ITask, queue: boolean): string => {
-    const department = task.attributes.department || (manager.strings as any)[StringTemplates.WebformTaskName];
-    if (queue) {
-      return `${task.queueName}: ${department}`;
+  const getFormName = (task: Flex.ITask): string => {
+    const attrs = task.attributes as Record<string, string>;
+    // Strip "Adobe Form: " prefix from customerName if present
+    if (attrs.customerName?.startsWith('Adobe Form: ')) {
+      return attrs.customerName.replace('Adobe Form: ', '');
     }
-    return department;
+    return attrs.department || (manager.strings as any)[StringTemplates.WebformTaskName] || 'Webform';
+  };
+
+  const getTaskName = (task: Flex.ITask, queue: boolean): string => {
+    const formName = getFormName(task);
+    if (queue) {
+      return `${task.queueName}: ${formName}`;
+    }
+    return formName;
   };
 
   const { templates } = channelDefinition;
@@ -36,7 +49,12 @@ export const channelHook = function createWebformChannel(flex: typeof Flex, mana
         ...templates?.TaskListItem,
         firstLine: (task: Flex.ITask) => getTaskName(task, true),
         secondLine: (task: Flex.ITask) => {
-          return task.attributes.customerName || '';
+          const attrs = task.attributes as Record<string, string>;
+          // For email-based forms, customerAddress has the sender (often generic like adobesign@adobesign.com)
+          const who = attrs.from || attrs.origin || attrs.customerAddress || '';
+          // Don't show generic system emails as "From:"
+          if (who && !who.includes('adobesign@')) return `From: ${who}`;
+          return attrs.department || task.queueName || '';
         },
       },
       TaskCanvasHeader: {

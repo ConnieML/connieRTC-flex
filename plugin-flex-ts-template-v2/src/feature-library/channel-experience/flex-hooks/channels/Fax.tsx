@@ -39,8 +39,9 @@ export const channelHook = function createFaxChannel(flex: typeof Flex, manager:
         ...templates?.TaskListItem,
         firstLine: (task: Flex.ITask) => getTaskName(task, true),
         secondLine: (task: Flex.ITask) => {
-          const from = task.attributes.from || task.attributes.customerName || '';
-          return from;
+          const attrs = task.attributes as Record<string, string>;
+          const who = attrs.customerName || attrs.from || attrs.origin || '';
+          return who ? `From: ${who}` : task.queueName || '';
         },
       },
       TaskCanvasHeader: {
